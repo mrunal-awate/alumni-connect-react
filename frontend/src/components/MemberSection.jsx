@@ -691,7 +691,7 @@
 import React, { useEffect, useState } from 'react';
 import AlumniCard from './AlumniCard';
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 8;
 
 const BRANCHES = [
   'All',
