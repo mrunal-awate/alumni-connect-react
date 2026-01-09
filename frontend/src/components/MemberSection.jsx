@@ -684,51 +684,288 @@
 
 
 
-// ------------------------------------------------------------------
+//------------------------THis is For Local Node backend (downward Code) ------------------------------------------------------------------
 
 
 
-import React, { useEffect, useState } from 'react';
-import AlumniCard from './AlumniCard';
+
+
+
+
+
+
+
+// import React, { useEffect, useState } from 'react';
+// import AlumniCard from './AlumniCard';
+
+// const ITEMS_PER_PAGE = 8;
+
+// const BRANCHES = [
+//   'All',
+//   'Computer Engineer',
+//   'IT Engineering',
+//   'ENTC Engineering',
+//   'Civil Engineering',
+//   'Mechanical Engineering',
+// ];
+
+// const MemberSection = () => {
+//   const [alumniList, setAlumniList] = useState([]);
+//   const [filteredList, setFilteredList] = useState([]);
+
+//   const [selectedBranch, setSelectedBranch] = useState('All');
+//   const [yearInput, setYearInput] = useState('');   // 🔹 year text input
+//   const [search, setSearch] = useState('');
+
+//   const [currentPage, setCurrentPage] = useState(1);
+
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState('');
+
+//   // 🔹 Fetch alumni
+//   useEffect(() => {
+//     const fetchAlumni = async () => {
+//       try {
+//         const res = await fetch('http://localhost:5000/api/alumni');
+//         const data = await res.json();
+
+//         if (!Array.isArray(data)) throw new Error('Invalid API response');
+
+//         setAlumniList(data);
+//         setFilteredList(data);
+//       } catch (err) {
+//         console.error(err);
+//         setError('Failed to load alumni data');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchAlumni();
+//   }, []);
+
+//   // 🔹 Apply filters
+//   useEffect(() => {
+//     let data = [...alumniList];
+
+//     // Branch filter
+//     if (selectedBranch !== 'All') {
+//       data = data.filter(a => a.branch === selectedBranch);
+//     }
+
+//     // Year filter (typed)
+//     if (yearInput.trim()) {
+//       data = data.filter(
+//         a => String(a.graduationYear) === yearInput.trim()
+//       );
+//     }
+
+//     // Search filter
+//     if (search.trim()) {
+//       const q = search.toLowerCase();
+//       data = data.filter(
+//         a =>
+//           a.name?.toLowerCase().includes(q) ||
+//           a.email?.toLowerCase().includes(q)
+//       );
+//     }
+
+//     setFilteredList(data);
+//     setCurrentPage(1);
+//   }, [selectedBranch, yearInput, search, alumniList]);
+
+//   // 🔹 Pagination
+//   const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
+//   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+//   const currentItems = filteredList.slice(
+//     startIndex,
+//     startIndex + ITEMS_PER_PAGE
+//   );
+
+//   return (
+//     <section style={styles.section}>
+//       <h2 style={styles.heading}>🎓 Meet Our Alumni</h2>
+
+//       {/* 🔍 FILTER BAR */}
+//       <div style={styles.filters}>
+//         <select
+//           value={selectedBranch}
+//           onChange={e => setSelectedBranch(e.target.value)}
+//           style={styles.select}
+//         >
+//           {BRANCHES.map(branch => (
+//             <option key={branch} value={branch}>
+//               {branch}
+//             </option>
+//           ))}
+//         </select>
+
+//         {/* ✅ YEAR INPUT */}
+//         <input
+//           type="String"
+//           placeholder="Year (e.g. 2011-2012)"
+//           value={yearInput}
+//           onChange={e => setYearInput(e.target.value)}
+//           style={styles.input}
+//         />
+
+//         <input
+//           type="text"
+//           placeholder="Search by name or email"
+//           value={search}
+//           onChange={e => setSearch(e.target.value)}
+//           style={styles.search}
+//         />
+//       </div>
+
+//       {loading && <p>Loading alumni...</p>}
+//       {error && <p style={{ color: 'red' }}>{error}</p>}
+
+//       {!loading && currentItems.length === 0 && (
+//         <p>No alumni found for selected filters</p>
+//       )}
+
+//       {/* 🎓 ALUMNI GRID */}
+//       <div style={styles.grid}>
+//         {currentItems.map(alumni => (
+//           <AlumniCard key={alumni._id} alumni={alumni} />
+//         ))}
+//       </div>
+
+//       {/* 📄 PAGINATION */}
+//       {totalPages > 1 && (
+//         <div style={styles.pagination}>
+//           <button
+//             onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+//             disabled={currentPage === 1}
+//           >
+//             ◀ Prev
+//           </button>
+
+//           <span>
+//             Page {currentPage} of {totalPages}
+//           </span>
+
+//           <button
+//             onClick={() =>
+//               setCurrentPage(p => Math.min(p + 1, totalPages))
+//             }
+//             disabled={currentPage === totalPages}
+//           >
+//             Next ▶
+//           </button>
+//         </div>
+//       )}
+//     </section>
+//   );
+// };
+
+// const styles = {
+//   section: {
+//     padding: '60px 30px',
+//     backgroundColor: '#f5faff',
+//     textAlign: 'center',
+//   },
+//   heading: {
+//     fontSize: '2.4rem',
+//     color: '#004080',
+//     marginBottom: '30px',
+//   },
+//   filters: {
+//     display: 'flex',
+//     gap: '12px',
+//     justifyContent: 'center',
+//     flexWrap: 'wrap',
+//     marginBottom: '30px',
+//   },
+//   select: {
+//     padding: '8px 12px',
+//     fontSize: '1rem',
+//   },
+//   input: {
+//     padding: '8px 12px',
+//     width: '140px',
+//     fontSize: '1rem',
+//   },
+//   search: {
+//     padding: '8px 12px',
+//     width: '220px',
+//     fontSize: '1rem',
+//   },
+//   grid: {
+//     display: 'grid',
+//     gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+//     gap: '20px',
+//     maxWidth: '1200px',
+//     margin: '0 auto',
+//   },
+//   pagination: {
+//     marginTop: '30px',
+//     display: 'flex',
+//     gap: '12px',
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+// };
+
+// export default MemberSection;
+
+
+
+// -----------------------------------This is for Supabase backend code ------------------------------------------------
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
+import AlumniCard from "./AlumniCard";
 
 const ITEMS_PER_PAGE = 8;
 
 const BRANCHES = [
-  'All',
-  'Computer Engineer',
-  'IT Engineering',
-  'ENTC Engineering',
-  'Civil Engineering',
-  'Mechanical Engineering',
+  "All",
+  "Computer Engineer",
+  "IT Engineering",
+  "ENTC Engineering",
+  "Civil Engineering",
+  "Mechanical Engineering",
 ];
 
 const MemberSection = () => {
   const [alumniList, setAlumniList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
 
-  const [selectedBranch, setSelectedBranch] = useState('All');
-  const [yearInput, setYearInput] = useState('');   // 🔹 year text input
-  const [search, setSearch] = useState('');
+  const [selectedBranch, setSelectedBranch] = useState("All");
+  const [yearInput, setYearInput] = useState("");
+  const [search, setSearch] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  // 🔹 Fetch alumni
+  // 🔥 Fetch alumni from Supabase
   useEffect(() => {
     const fetchAlumni = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/alumni');
-        const data = await res.json();
+        const { data, error } = await supabase
+          .from("alumni")
+          .select("*")
+          .order("name", { ascending: true });
 
-        if (!Array.isArray(data)) throw new Error('Invalid API response');
+        if (error) throw error;
 
-        setAlumniList(data);
-        setFilteredList(data);
+        setAlumniList(data || []);
+        setFilteredList(data || []);
       } catch (err) {
         console.error(err);
-        setError('Failed to load alumni data');
+        setError("Failed to load alumni data");
       } finally {
         setLoading(false);
       }
@@ -737,27 +974,24 @@ const MemberSection = () => {
     fetchAlumni();
   }, []);
 
-  // 🔹 Apply filters
+  // 🔍 Apply filters
   useEffect(() => {
     let data = [...alumniList];
 
-    // Branch filter
-    if (selectedBranch !== 'All') {
-      data = data.filter(a => a.branch === selectedBranch);
+    if (selectedBranch !== "All") {
+      data = data.filter((a) => a.branch === selectedBranch);
     }
 
-    // Year filter (typed)
     if (yearInput.trim()) {
       data = data.filter(
-        a => String(a.graduationYear) === yearInput.trim()
+        (a) => String(a.graduationyear || a.graduationYear) === yearInput.trim()
       );
     }
 
-    // Search filter
     if (search.trim()) {
       const q = search.toLowerCase();
       data = data.filter(
-        a =>
+        (a) =>
           a.name?.toLowerCase().includes(q) ||
           a.email?.toLowerCase().includes(q)
       );
@@ -767,7 +1001,7 @@ const MemberSection = () => {
     setCurrentPage(1);
   }, [selectedBranch, yearInput, search, alumniList]);
 
-  // 🔹 Pagination
+  // 📄 Pagination
   const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentItems = filteredList.slice(
@@ -779,26 +1013,24 @@ const MemberSection = () => {
     <section style={styles.section}>
       <h2 style={styles.heading}>🎓 Meet Our Alumni</h2>
 
-      {/* 🔍 FILTER BAR */}
       <div style={styles.filters}>
         <select
           value={selectedBranch}
-          onChange={e => setSelectedBranch(e.target.value)}
+          onChange={(e) => setSelectedBranch(e.target.value)}
           style={styles.select}
         >
-          {BRANCHES.map(branch => (
+          {BRANCHES.map((branch) => (
             <option key={branch} value={branch}>
               {branch}
             </option>
           ))}
         </select>
 
-        {/* ✅ YEAR INPUT */}
         <input
-          type="String"
-          placeholder="Year (e.g. 2011-2012)"
+          type="text"
+          placeholder="Year (e.g. 2011)"
           value={yearInput}
-          onChange={e => setYearInput(e.target.value)}
+          onChange={(e) => setYearInput(e.target.value)}
           style={styles.input}
         />
 
@@ -806,30 +1038,28 @@ const MemberSection = () => {
           type="text"
           placeholder="Search by name or email"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           style={styles.search}
         />
       </div>
 
       {loading && <p>Loading alumni...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       {!loading && currentItems.length === 0 && (
         <p>No alumni found for selected filters</p>
       )}
 
-      {/* 🎓 ALUMNI GRID */}
       <div style={styles.grid}>
-        {currentItems.map(alumni => (
-          <AlumniCard key={alumni._id} alumni={alumni} />
+        {currentItems.map((alumni) => (
+          <AlumniCard key={alumni.id} alumni={alumni} />
         ))}
       </div>
 
-      {/* 📄 PAGINATION */}
       {totalPages > 1 && (
         <div style={styles.pagination}>
           <button
-            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
           >
             ◀ Prev
@@ -841,7 +1071,7 @@ const MemberSection = () => {
 
           <button
             onClick={() =>
-              setCurrentPage(p => Math.min(p + 1, totalPages))
+              setCurrentPage((p) => Math.min(p + 1, totalPages))
             }
             disabled={currentPage === totalPages}
           >
@@ -855,49 +1085,49 @@ const MemberSection = () => {
 
 const styles = {
   section: {
-    padding: '60px 30px',
-    backgroundColor: '#f5faff',
-    textAlign: 'center',
+    padding: "60px 30px",
+    backgroundColor: "#f5faff",
+    textAlign: "center",
   },
   heading: {
-    fontSize: '2.4rem',
-    color: '#004080',
-    marginBottom: '30px',
+    fontSize: "2.4rem",
+    color: "#004080",
+    marginBottom: "30px",
   },
   filters: {
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    marginBottom: '30px',
+    display: "flex",
+    gap: "12px",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    marginBottom: "30px",
   },
   select: {
-    padding: '8px 12px',
-    fontSize: '1rem',
+    padding: "8px 12px",
+    fontSize: "1rem",
   },
   input: {
-    padding: '8px 12px',
-    width: '140px',
-    fontSize: '1rem',
+    padding: "8px 12px",
+    width: "140px",
+    fontSize: "1rem",
   },
   search: {
-    padding: '8px 12px',
-    width: '220px',
-    fontSize: '1rem',
+    padding: "8px 12px",
+    width: "220px",
+    fontSize: "1rem",
   },
   grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '20px',
-    maxWidth: '1200px',
-    margin: '0 auto',
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "20px",
+    maxWidth: "1200px",
+    margin: "0 auto",
   },
   pagination: {
-    marginTop: '30px',
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginTop: "30px",
+    display: "flex",
+    gap: "12px",
+    justifyContent: "center",
+    alignItems: "center",
   },
 };
 
