@@ -1257,8 +1257,8 @@ const MemberSection = () => {
         </select>
 
         <input
-          type="text"
-          placeholder="Year (e.g. 2011)"
+          type="String"
+          placeholder="Year (e.g. 2011-2012)"
           value={yearInput}
           onChange={(e) => setYearInput(e.target.value)}
           style={styles.input}
