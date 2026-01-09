@@ -1213,7 +1213,7 @@ const MemberSection = () => {
     if (yearInput.trim()) {
       data = data.filter(
         (a) =>
-          String(a.graduationyear || a.graduationYear || "") ===
+          Text(a.year || a.year || "") ===
           yearInput.trim()
       );
     }
@@ -1257,7 +1257,7 @@ const MemberSection = () => {
         </select>
 
         <input
-          type="String"
+          type="text"
           placeholder="Year (e.g. 2011-2012)"
           value={yearInput}
           onChange={(e) => setYearInput(e.target.value)}

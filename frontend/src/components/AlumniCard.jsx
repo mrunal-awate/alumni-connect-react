@@ -535,7 +535,7 @@ const AlumniCard = ({ alumni }) => {
     _id,
     name = 'Unnamed Alumni',
     email = 'Not provided',
-    graduationYear = 'Not specified',
+    year = 'Not specified',
     branch = 'Not specified',
     role = 'alumni',
 
@@ -581,7 +581,7 @@ const AlumniCard = ({ alumni }) => {
       </p>
 
       <p style={styles.info}>
-        <strong>Batch:</strong> {graduationYear}
+        <strong>Batch:</strong> {year}
       </p>
 
       <p style={styles.info}>
