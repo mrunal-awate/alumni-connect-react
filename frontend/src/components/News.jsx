@@ -273,6 +273,7 @@ const News = () => {
         const options = {
           method: 'GET',
           url: 'https://jsearch.p.rapidapi.com/search',
+          // url: 'https://gnews.io/api/v4/top-headlines?category=' + category + '&lang=en&country=us&max=10&apikey=' + apikey;',     //Testing purpose
           params: {
             query: 'internship OR fresher jobs',
             page: '1',
@@ -280,7 +281,9 @@ const News = () => {
           },
           headers: {
             'X-RapidAPI-Key': 'ec18f5d303msh80d3aa10778cbb0p18a129jsn642fec00ac67', // 🚫 Replace with env var in production
+            // 'X-RapidAPI-Key': '1DL4pRCKKmg238fsCU6i7ZYEStP9fL9o4q', // Testing Purpose
             'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
+            // 'X-RapidAPI-Host': 'gnews.io',                   //Testing Purpose
           },
         };
 
