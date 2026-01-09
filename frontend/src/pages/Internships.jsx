@@ -104,7 +104,7 @@ const allJobListings = [
     type: 'Internship',
     description: 'Join our dynamic team to build responsive and user-friendly web interfaces using React and Tailwind CSS. You will work closely with senior developers, gaining hands-on experience in a fast-paced environment.',
     postedDate: '2024-07-20',
-    applyLink: '#',
+    applyLink: 'https://github.com/mrunal-awate',
     skills: ['React', 'JavaScript', 'HTML', 'CSS', 'Tailwind CSS', 'Git'],
   },
   {

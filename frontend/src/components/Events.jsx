@@ -230,21 +230,19 @@ const Events = () => {
       >
         <button
           onClick={() => setActiveTab('upcoming')}
-          className={`px-8 py-3 font-semibold text-lg rounded-lg transition-all duration-300 ${
-            activeTab === 'upcoming'
-              ? 'bg-blue-600 text-white shadow-md'
-              : 'text-gray-700 hover:bg-gray-100'
-          }`}
+          className={`px-8 py-3 font-semibold text-lg rounded-lg transition-all duration-300 ${activeTab === 'upcoming'
+            ? 'bg-blue-600 text-white shadow-md'
+            : 'text-gray-700 hover:bg-gray-100'
+            }`}
         >
           Upcoming Events ({upcomingEvents.length})
         </button>
         <button
           onClick={() => setActiveTab('past')}
-          className={`px-8 py-3 font-semibold text-lg rounded-lg transition-all duration-300 ml-4 ${
-            activeTab === 'past'
-              ? 'bg-blue-600 text-white shadow-md'
-              : 'text-gray-700 hover:bg-gray-100'
-          }`}
+          className={`px-8 py-3 font-semibold text-lg rounded-lg transition-all duration-300 ml-4 ${activeTab === 'past'
+            ? 'bg-blue-600 text-white shadow-md'
+            : 'text-gray-700 hover:bg-gray-100'
+            }`}
         >
           Past Events ({pastEvents.length})
         </button>
@@ -283,7 +281,7 @@ const Events = () => {
                         src={event.image}
                         alt={event.title}
                         className="w-full h-full object-cover"
-                        onError={(e) => { e.target.onerror = null; e.target.src="https://via.placeholder.com/400x200?text=Image+Load+Error"; }} // Fallback on error
+                        onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/400x200?text=Image+Load+Error"; }} // Fallback on error
                       />
                     ) : (
                       // Fallback if image URL is genuinely empty or null in data
