@@ -618,6 +618,21 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
             {isRegister ? "Register" : "Login"}
           </button>
         </form>
+        <p style={styles.toggleText}>                             
+          {isRegister ? "Already have an account?" : "New user?"}{" "}
+          <button
+            type="button"
+            onClick={() =>
+              setFormData((prev) => ({
+                ...prev,
+                type: prev.type === "register" ? "login" : "register",
+              }))
+            }
+            style={styles.toggleBtn}
+          >
+            {isRegister ? "Login here" : "Register here"}
+          </button>
+        </p>
       </div>
     </section>
   );
@@ -632,6 +647,20 @@ const styles = {
   button: { padding: 12, background: "#004080", color: "#fff", border: "none", borderRadius: 6 },
   popupSuccess: { background: "#d4edda", padding: 10, marginBottom: 10 },
   popupError: { background: "#f8d7da", padding: 10, marginBottom: 10 },
+  toggleText: {
+    marginTop: "15px",
+    fontSize: "14px",
+  },
+
+  toggleBtn: {
+    background: "none",
+    border: "none",
+    color: "#004080",
+    cursor: "pointer",
+    fontWeight: "bold",
+    textDecoration: "underline",
+  },
+
 };
 
 export default RegisterLogin;
