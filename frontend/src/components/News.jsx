@@ -280,7 +280,7 @@ const News = () => {
             num_pages: '1',
           },
           headers: {
-            'X-RapidAPI-Key': 'ec18f5d303msh80d3aa10778cbb0p18a129jsn642fec00ac67', // 🚫 Replace with env var in production
+            // 'X-RapidAPI-Key': 'ec18f5d303msh80d3aa10778cbb0p18a129jsn642fec00ac67', // 🚫 Replace with env var in production
             // 'X-RapidAPI-Key': '1DL4pRCKKmg238fsCU6i7ZYEStP9fL9o4q', // Testing Purpose
             'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
             // 'X-RapidAPI-Host': 'gnews.io',                   //Testing Purpose
