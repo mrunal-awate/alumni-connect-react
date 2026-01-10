@@ -2,7 +2,7 @@
 // import axios from 'axios';
 // import { useAuth } from '../context/AuthContext';
 
-import { version } from "react"
+// import { version } from "react"
 
 // const News = () => {
 //   const { isAuthenticated } = useAuth();
