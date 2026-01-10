@@ -360,7 +360,7 @@
 //       .maybeSingle();
 
 //     if (alumni) {
-//       setRole("alumni");
+// setRole("alumni");
 //       setIsVerified(alumni.is_verified);
 //       return;
 //     }
@@ -396,10 +396,10 @@
 //     setIsVerified(false);
 //   };
 
-//   useEffect(() => {
-//     const load = async () => {
-//       const { data } = await supabase.auth.getSession();
-//       const session = data.session;
+  // useEffect(() => {
+  //   const load = async () => {
+  //     const { data } = await supabase.auth.getSession();
+  //     const session = data.session;
 
 //       setSession(session);
 //       setUser(session?.user || null);
@@ -461,6 +461,12 @@
 // -------------------------------------------------final version online-------------------------------------------------------
 
 
+
+
+
+
+
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
@@ -469,85 +475,108 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null); // alumni | student | faculty | null
+  const [role, setRole] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
-  const safeSingle = async (query) => {
-    const { data, error } = await query;
-    if (error) return null;   // RLS blocked or row missing → treat as not found
-    return data;
-  };
-
-  const resolveRole = async (uid) => {
-    // Alumni
-    const alumni = await safeSingle(
-      supabase.from("alumni").select("is_verified").eq("id", uid).maybeSingle()
-    );
-
-    if (alumni) {
-      setRole("alumni");
-      setIsVerified(!!alumni.is_verified);
-      return;
-    }
-
-    // Student
-    const student = await safeSingle(
-      supabase.from("students").select("is_verified").eq("id", uid).maybeSingle()
-    );
-
-    if (student) {
-      setRole("student");
-      setIsVerified(!!student.is_verified);
-      return;
-    }
-
-    // Faculty
-    const faculty = await safeSingle(
-      supabase.from("faculty").select("is_verified").eq("id", uid).maybeSingle()
-    );
-
-    if (faculty) {
-      setRole("faculty");
-      setIsVerified(!!faculty.is_verified);
-      return;
-    }
-
-    // Nothing found
+  const clearAuth = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {}
+    setSession(null);
+    setUser(null);
     setRole(null);
     setIsVerified(false);
   };
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase.auth.getSession();
-      const session = data.session;
+  const safeSingle = async (query) => {
+    try {
+      const { data, error } = await query;
+      if (error) return null;
+      return data;
+    } catch {
+      return null;
+    }
+  };
 
-      setSession(session);
-      setUser(session?.user || null);
-
-      if (session?.user) {
-        await resolveRole(session.user.id);
+  const resolveRole = async (uid) => {
+    try {
+      const alumni = await safeSingle(
+        supabase.from("alumni").select("is_verified").eq("id", uid).maybeSingle()
+      );
+      if (alumni) {
+        setRole("alumni");
+        setIsVerified(!!alumni.is_verified);
+        return;
       }
 
-      setAuthLoading(false);
+      const student = await safeSingle(
+        supabase.from("students").select("is_verified").eq("id", uid).maybeSingle()
+      );
+      if (student) {
+        setRole("student");
+        setIsVerified(!!student.is_verified);
+        return;
+      }
+
+      const faculty = await safeSingle(
+        supabase.from("faculty").select("is_verified").eq("id", uid).maybeSingle()
+      );
+      if (faculty) {
+        setRole("faculty");
+        setIsVerified(!!faculty.is_verified);
+        return;
+      }
+
+      setRole(null);
+      setIsVerified(false);
+    } catch (err) {
+      console.error("Role resolution failed", err);
+      await clearAuth();
+    }
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        const session = data.session;
+        setSession(session);
+        setUser(session?.user || null);
+
+        if (session?.user) {
+          await resolveRole(session.user.id);
+        }
+      } catch (err) {
+        console.error("Session restore failed:", err);
+        await clearAuth();
+      } finally {
+        setAuthLoading(false);
+      }
     };
 
     load();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        setSession(session);
-        setUser(session?.user || null);
+        try {
+          setSession(session);
+          setUser(session?.user || null);
 
-        if (session?.user) {
-          await resolveRole(session.user.id);
-        } else {
-          setRole(null);
-          setIsVerified(false);
+          if (session?.user) {
+            await resolveRole(session.user.id);
+          } else {
+            setRole(null);
+            setIsVerified(false);
+          }
+        } catch (err) {
+          console.error("Auth change failed:", err);
+          await clearAuth();
+        } finally {
+          setAuthLoading(false);
         }
-
-        setAuthLoading(false);
       }
     );
 
@@ -566,7 +595,7 @@ export const AuthProvider = ({ children }) => {
         isStudent: role === "student",
         isFaculty: role === "faculty",
         authLoading,
-        logout: () => supabase.auth.signOut(),
+        logout: clearAuth,
       }}
     >
       {children}
