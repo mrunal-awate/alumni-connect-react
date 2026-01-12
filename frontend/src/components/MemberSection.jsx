@@ -1338,6 +1338,186 @@
 
 
 
+// import React, { useEffect, useState } from "react";
+// import { supabase } from "../supabaseClient";
+// import AlumniCard from "./AlumniCard";
+
+// const ITEMS_PER_PAGE = 8;
+
+// const BRANCHES = [
+//   "All",
+//   "Computer Engineer",
+//   "IT Engineering",
+//   "ENTC Engineering",
+//   "Civil Engineering",
+//   "Mechanical Engineering",
+// ];
+
+// const MemberSection = () => {
+//   const [alumniList, setAlumniList] = useState([]);
+//   const [filteredList, setFilteredList] = useState([]);
+
+//   const [selectedBranch, setSelectedBranch] = useState("All");
+//   const [yearInput, setYearInput] = useState("");
+//   const [search, setSearch] = useState("");
+
+//   const [currentPage, setCurrentPage] = useState(1);
+
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState("");
+
+//   // 🔐 Wait for Supabase auth before reading RLS protected tables
+//   useEffect(() => {
+//     const load = async () => {
+//       setLoading(true);
+//       setError("");
+
+//       const {
+//         data: { session },
+//       } = await supabase.auth.getSession();
+
+//       if (!session) {
+//         setError("You must be logged in");
+//         setLoading(false);
+//         return;
+//       }
+
+//       const { data, error } = await supabase
+//         .from("alumni")
+//         .select("*")
+//         .order("name", { ascending: true });
+
+//       if (error) {
+//         console.error("Supabase error:", error);
+//         setError("Access denied or no alumni available");
+//       } else {
+//         setAlumniList(data || []);
+//         setFilteredList(data || []);
+//       }
+
+//       setLoading(false);
+//     };
+
+//     load();
+//   }, []);
+
+//   // 🔍 Filters
+//   useEffect(() => {
+//     let data = [...alumniList];
+
+//     if (selectedBranch !== "All") {
+//       data = data.filter((a) => a.branch === selectedBranch);
+//     }
+
+//     if (yearInput.trim()) {
+//       data = data.filter(
+//         (a) => String(a.year || "") === yearInput.trim()
+//       );
+//     }
+
+//     if (search.trim()) {
+//       const q = search.toLowerCase();
+//       data = data.filter(
+//         (a) =>
+//           a.name?.toLowerCase().includes(q) ||
+//           a.email?.toLowerCase().includes(q)
+//       );
+//     }
+
+//     setFilteredList(data);
+//     setCurrentPage(1);
+//   }, [selectedBranch, yearInput, search, alumniList]);
+
+//   // Pagination
+//   const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
+//   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+//   const currentItems = filteredList.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+//   return (
+//     <section style={styles.section}>
+//       <h2 style={styles.heading}>🎓 Meet Our Alumni</h2>
+
+//       <div style={styles.filters}>
+//         <select value={selectedBranch} onChange={(e) => setSelectedBranch(e.target.value)} style={styles.select}>
+//           {BRANCHES.map((branch) => (
+//             <option key={branch} value={branch}>
+//               {branch}
+//             </option>
+//           ))}
+//         </select>
+
+//         <input
+//           type="text"
+//           placeholder="Year (e.g. 2011-2012)"
+//           value={yearInput}
+//           onChange={(e) => setYearInput(e.target.value)}
+//           style={styles.input}
+//         />
+
+//         <input
+//           type="text"
+//           placeholder="Search by name or email"
+//           value={search}
+//           onChange={(e) => setSearch(e.target.value)}
+//           style={styles.search}
+//         />
+//       </div>
+
+//       {loading && <p>Loading alumni...</p>}
+//       {error && <p style={{ color: "red" }}>{error}</p>}
+
+//       {!loading && currentItems.length === 0 && !error && (
+//         <p>No alumni found for selected filters</p>
+//       )}
+
+//       <div style={styles.grid}>
+//         {currentItems.map((alumni) => (
+//           <AlumniCard key={alumni.id} alumni={alumni} />
+//         ))}
+//       </div>
+
+//       {totalPages > 1 && (
+//         <div style={styles.pagination}>
+//           <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>
+//             ◀ Prev
+//           </button>
+
+//           <span>
+//             Page {currentPage} of {totalPages}
+//           </span>
+
+//           <button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>
+//             Next ▶
+//           </button>
+//         </div>
+//       )}
+//     </section>
+//   );
+// };
+
+// const styles = {
+//   section: { padding: "60px 30px", backgroundColor: "#f5faff", textAlign: "center" },
+//   heading: { fontSize: "2.4rem", color: "#004080", marginBottom: "30px" },
+//   filters: { display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap", marginBottom: "30px" },
+//   select: { padding: "8px 12px", fontSize: "1rem" },
+//   input: { padding: "8px 12px", width: "140px", fontSize: "1rem" },
+//   search: { padding: "8px 12px", width: "220px", fontSize: "1rem" },
+//   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px", maxWidth: "1200px", margin: "0 auto" },
+//   pagination: { marginTop: "30px", display: "flex", gap: "12px", justifyContent: "center", alignItems: "center" },
+// };
+
+// export default MemberSection;
+
+
+
+
+
+
+// ----------------------------------------------------------------------------------
+
+
+
+
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import AlumniCard from "./AlumniCard";
@@ -1356,28 +1536,18 @@ const BRANCHES = [
 const MemberSection = () => {
   const [alumniList, setAlumniList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
-
   const [selectedBranch, setSelectedBranch] = useState("All");
   const [yearInput, setYearInput] = useState("");
   const [search, setSearch] = useState("");
-
   const [currentPage, setCurrentPage] = useState(1);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // 🔐 Wait for Supabase auth before reading RLS protected tables
+  // 🔥 Load alumni AFTER Supabase session is ready
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      setError("");
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
+    const loadAlumni = async (session) => {
       if (!session) {
-        setError("You must be logged in");
+        setError("Please login to view alumni");
         setLoading(false);
         return;
       }
@@ -1388,8 +1558,8 @@ const MemberSection = () => {
         .order("name", { ascending: true });
 
       if (error) {
-        console.error("Supabase error:", error);
-        setError("Access denied or no alumni available");
+        console.error(error);
+        setError("You are not verified or access denied");
       } else {
         setAlumniList(data || []);
         setFilteredList(data || []);
@@ -1398,10 +1568,24 @@ const MemberSection = () => {
       setLoading(false);
     };
 
-    load();
+    // Get current session
+    supabase.auth.getSession().then(({ data }) => {
+      loadAlumni(data.session);
+    });
+
+    // React to future auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoading(true);
+      setError("");
+      loadAlumni(session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // 🔍 Filters
+  // 🔍 Apply filters
   useEffect(() => {
     let data = [...alumniList];
 
@@ -1410,9 +1594,7 @@ const MemberSection = () => {
     }
 
     if (yearInput.trim()) {
-      data = data.filter(
-        (a) => String(a.year || "") === yearInput.trim()
-      );
+      data = data.filter((a) => String(a.year || "") === yearInput.trim());
     }
 
     if (search.trim()) {
@@ -1428,7 +1610,6 @@ const MemberSection = () => {
     setCurrentPage(1);
   }, [selectedBranch, yearInput, search, alumniList]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentItems = filteredList.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -1467,7 +1648,7 @@ const MemberSection = () => {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {!loading && currentItems.length === 0 && !error && (
-        <p>No alumni found for selected filters</p>
+        <p>No alumni found</p>
       )}
 
       <div style={styles.grid}>
@@ -1481,11 +1662,7 @@ const MemberSection = () => {
           <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>
             ◀ Prev
           </button>
-
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
-
+          <span>Page {currentPage} of {totalPages}</span>
           <button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>
             Next ▶
           </button>
@@ -1507,4 +1684,3 @@ const styles = {
 };
 
 export default MemberSection;
-
