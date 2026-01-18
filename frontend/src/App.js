@@ -421,7 +421,7 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  return isAuthenticated ? children : <Navigate to="/" replace />;
+  return isAuthenticated ? children : <Navigate to="/" replace />;              // Redirect to home if not authenticated
 };
 
 const AdminRoute = ({ children }) => {
