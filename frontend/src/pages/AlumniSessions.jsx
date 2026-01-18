@@ -584,11 +584,184 @@
 
 
 
+// // /pages/AlumniSessions.jsx
+// import React, { useState, useEffect, useRef } from "react";
+
+// /* ---------------- STATIC SESSIONS DATA ---------------- */
+// // (Moved OUTSIDE component to satisfy ESLint)
+// const allSessions = [
+//   {
+//     id: "session-1",
+//     title: "How to Succeed in the Tech Industry",
+//     speaker: "John Doe",
+//     batch: "2015",
+//     videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+//     description:
+//       "Join us as John shares his inspiring journey from SITS to becoming a Senior Developer at Google. Learn about industry trends, interview prep, and workplace success tips.",
+//     speakerBio:
+//       "John Doe is a distinguished alumnus from the 2015 batch, currently serving as a Senior Developer at Google. With a passion for innovative technology, he has contributed significantly to several high-profile projects.",
+//     date: "2024-03-15",
+//   },
+//   {
+//     id: "session-2",
+//     title: "Landing Jobs After Graduation",
+//     speaker: "Jane Smith",
+//     batch: "2016",
+//     videoUrl: "https://www.youtube.com/embed/s_x3Jm-2N0k",
+//     description:
+//       "Expert tips on resume building, networking, and interview strategies to kickstart your career.",
+//     speakerBio:
+//       "Jane Smith is a seasoned HR professional and career coach who graduated in 2016.",
+//     date: "2024-02-20",
+//   },
+//   {
+//     id: "session-3",
+//     title: "Cracking the Google Interview",
+//     speaker: "Rahul Verma",
+//     batch: "2018",
+//     videoUrl: "https://www.youtube.com/embed/Nn0m0gGjL8M",
+//     description:
+//       "An in-depth guide to preparing for and acing technical interviews at top tech companies.",
+//     speakerBio:
+//       "Rahul Verma, a software engineer at Google, graduated in 2018.",
+//     date: "2023-11-10",
+//   },
+//   {
+//     id: "session-4",
+//     title: "AI Careers 101",
+//     speaker: "Priya Mehta",
+//     batch: "2014",
+//     videoUrl: "https://www.youtube.com/embed/r_s_yN6Gg7c",
+//     description:
+//       "Explore career paths in AI and Machine Learning and how to get started.",
+//     speakerBio:
+//       "Priya Mehta is a leading AI researcher and data scientist from the 2014 batch.",
+//     date: "2023-09-01",
+//   },
+//   {
+//     id: "session-5",
+//     title: "Entrepreneurship in Tech",
+//     speaker: "Sameer Khan",
+//     batch: "2017",
+//     videoUrl: "https://www.youtube.com/embed/ZqL54x0b8sU",
+//     description:
+//       "Insights into starting and scaling a tech startup from a successful alumnus.",
+//     speakerBio:
+//       "Sameer Khan is the founder of a successful tech startup (Batch 2017).",
+//     date: "2023-07-25",
+//   },
+//   {
+//     id: "session-6",
+//     title: "Product Management Essentials",
+//     speaker: "Anjali Sharma",
+//     batch: "2019",
+//     videoUrl: "https://www.youtube.com/embed/WJ_YlE7o53U",
+//     description:
+//       "Understanding the role of a Product Manager and how to transition into it.",
+//     speakerBio:
+//       "Anjali Sharma is a Product Manager at a fast-growing tech company.",
+//     date: "2023-06-12",
+//   },
+// ];
+
+// const AlumniSessions = () => {
+//   const [messages, setMessages] = useState([]);
+//   const [inputMsg, setInputMsg] = useState("");
+//   const [currentSession, setCurrentSession] = useState(null);
+//   const [isLoading, setIsLoading] = useState(true);
+//   const chatMessagesRef = useRef(null);
+
+//   /* ---------------- DEFAULT SESSION LOAD ---------------- */
+//   useEffect(() => {
+//     setIsLoading(true);
+//     const timer = setTimeout(() => {
+//       setCurrentSession(allSessions[0]);
+//       setIsLoading(false);
+//     }, 500);
+
+//     return () => clearTimeout(timer);
+//   }, []);
+
+//   /* ---------------- AUTO SCROLL CHAT ---------------- */
+//   useEffect(() => {
+//     if (chatMessagesRef.current) {
+//       chatMessagesRef.current.scrollTop =
+//         chatMessagesRef.current.scrollHeight;
+//     }
+//   }, [messages]);
+
+//   const handleSend = () => {
+//     if (!inputMsg.trim() || !currentSession) return;
+
+//     setMessages((prev) => [
+//       ...prev,
+//       { text: inputMsg, sender: "You", timestamp: new Date() },
+//     ]);
+//     setInputMsg("");
+
+//     setTimeout(() => {
+//       setMessages((prev) => [
+//         ...prev,
+//         {
+//           text: "Thanks for your question! I'll address that shortly.",
+//           sender: currentSession.speaker,
+//           timestamp: new Date(),
+//         },
+//       ]);
+//     }, 1500);
+//   };
+
+//   const handleSessionSelect = (session) => {
+//     setIsLoading(true);
+//     setTimeout(() => {
+//       setCurrentSession(session);
+//       setMessages([]);
+//       setIsLoading(false);
+//     }, 400);
+//   };
+
+//   const formatDate = (dateString) =>
+//     new Date(dateString).toLocaleDateString("en-IN", {
+//       year: "numeric",
+//       month: "long",
+//       day: "numeric",
+//     });
+
+//   /* ---------------- UI ---------------- */
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8 md:px-8">
+//       <h1 className="text-4xl md:text-5xl font-extrabold text-center text-blue-800 mb-10">
+//         🎓 Alumni Interactive Sessions
+//       </h1>
+
+//       {/* MAIN CONTENT (unchanged UI logic) */}
+//       {/* Your existing JSX remains exactly the same below */}
+//       {/* No ESLint violations beyond this point */}
+//     </div>
+//   );
+// };
+
+// export default AlumniSessions;
+
+
+
+
+
+// ---------------------------------- previous version ----------------------------------
+
+
+
+
+
+
+
+
+
+
 // /pages/AlumniSessions.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 
 /* ---------------- STATIC SESSIONS DATA ---------------- */
-// (Moved OUTSIDE component to satisfy ESLint)
 const allSessions = [
   {
     id: "session-1",
@@ -597,9 +770,9 @@ const allSessions = [
     batch: "2015",
     videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     description:
-      "Join us as John shares his inspiring journey from SITS to becoming a Senior Developer at Google. Learn about industry trends, interview prep, and workplace success tips.",
+      "Join us as John shares his inspiring journey from SITS to becoming a Senior Developer at Google.",
     speakerBio:
-      "John Doe is a distinguished alumnus from the 2015 batch, currently serving as a Senior Developer at Google. With a passion for innovative technology, he has contributed significantly to several high-profile projects.",
+      "John Doe is a distinguished alumnus from the 2015 batch, currently serving as a Senior Developer at Google.",
     date: "2024-03-15",
   },
   {
@@ -609,123 +782,28 @@ const allSessions = [
     batch: "2016",
     videoUrl: "https://www.youtube.com/embed/s_x3Jm-2N0k",
     description:
-      "Expert tips on resume building, networking, and interview strategies to kickstart your career.",
+      "Expert tips on resume building, networking, and interview strategies.",
     speakerBio:
-      "Jane Smith is a seasoned HR professional and career coach who graduated in 2016.",
+      "Jane Smith is a seasoned HR professional and career coach.",
     date: "2024-02-20",
-  },
-  {
-    id: "session-3",
-    title: "Cracking the Google Interview",
-    speaker: "Rahul Verma",
-    batch: "2018",
-    videoUrl: "https://www.youtube.com/embed/Nn0m0gGjL8M",
-    description:
-      "An in-depth guide to preparing for and acing technical interviews at top tech companies.",
-    speakerBio:
-      "Rahul Verma, a software engineer at Google, graduated in 2018.",
-    date: "2023-11-10",
-  },
-  {
-    id: "session-4",
-    title: "AI Careers 101",
-    speaker: "Priya Mehta",
-    batch: "2014",
-    videoUrl: "https://www.youtube.com/embed/r_s_yN6Gg7c",
-    description:
-      "Explore career paths in AI and Machine Learning and how to get started.",
-    speakerBio:
-      "Priya Mehta is a leading AI researcher and data scientist from the 2014 batch.",
-    date: "2023-09-01",
-  },
-  {
-    id: "session-5",
-    title: "Entrepreneurship in Tech",
-    speaker: "Sameer Khan",
-    batch: "2017",
-    videoUrl: "https://www.youtube.com/embed/ZqL54x0b8sU",
-    description:
-      "Insights into starting and scaling a tech startup from a successful alumnus.",
-    speakerBio:
-      "Sameer Khan is the founder of a successful tech startup (Batch 2017).",
-    date: "2023-07-25",
-  },
-  {
-    id: "session-6",
-    title: "Product Management Essentials",
-    speaker: "Anjali Sharma",
-    batch: "2019",
-    videoUrl: "https://www.youtube.com/embed/WJ_YlE7o53U",
-    description:
-      "Understanding the role of a Product Manager and how to transition into it.",
-    speakerBio:
-      "Anjali Sharma is a Product Manager at a fast-growing tech company.",
-    date: "2023-06-12",
   },
 ];
 
 const AlumniSessions = () => {
-  const [messages, setMessages] = useState([]);
-  const [inputMsg, setInputMsg] = useState("");
   const [currentSession, setCurrentSession] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const chatMessagesRef = useRef(null);
 
   /* ---------------- DEFAULT SESSION LOAD ---------------- */
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setCurrentSession(allSessions[0]);
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    setCurrentSession(allSessions[0]);
   }, []);
 
-  /* ---------------- AUTO SCROLL CHAT ---------------- */
-  useEffect(() => {
-    if (chatMessagesRef.current) {
-      chatMessagesRef.current.scrollTop =
-        chatMessagesRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSend = () => {
-    if (!inputMsg.trim() || !currentSession) return;
-
-    setMessages((prev) => [
-      ...prev,
-      { text: inputMsg, sender: "You", timestamp: new Date() },
-    ]);
-    setInputMsg("");
-
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          text: "Thanks for your question! I'll address that shortly.",
-          sender: currentSession.speaker,
-          timestamp: new Date(),
-        },
-      ]);
-    }, 1500);
-  };
-
-  const handleSessionSelect = (session) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setCurrentSession(session);
-      setMessages([]);
-      setIsLoading(false);
-    }, 400);
-  };
-
-  const formatDate = (dateString) =>
-    new Date(dateString).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  if (!currentSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-blue-700 text-xl">
+        Loading session...
+      </div>
+    );
+  }
 
   /* ---------------- UI ---------------- */
   return (
@@ -734,9 +812,38 @@ const AlumniSessions = () => {
         🎓 Alumni Interactive Sessions
       </h1>
 
-      {/* MAIN CONTENT (unchanged UI logic) */}
-      {/* Your existing JSX remains exactly the same below */}
-      {/* No ESLint violations beyond this point */}
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow p-6">
+        <div className="aspect-video mb-6 rounded-lg overflow-hidden">
+          <iframe
+            className="w-full h-full"
+            src={currentSession.videoUrl}
+            title={currentSession.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          {currentSession.title}
+        </h2>
+
+        <p className="text-blue-600 font-medium mb-3">
+          🎤 {currentSession.speaker} (Batch {currentSession.batch})
+        </p>
+
+        <p className="text-gray-700 mb-4">
+          {currentSession.description}
+        </p>
+
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <h3 className="text-xl font-semibold text-blue-700 mb-2">
+            About the Speaker
+          </h3>
+          <p className="text-gray-700 text-sm">
+            {currentSession.speakerBio}
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
