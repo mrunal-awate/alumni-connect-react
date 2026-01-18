@@ -358,6 +358,185 @@
 
 
 
+// import React, { useState, useMemo, useEffect } from "react";
+// import { motion, AnimatePresence } from "framer-motion";
+// import { Helmet } from "react-helmet";
+// import { supabase } from "../supabaseClient";
+
+// /* ---------- KEEP YOUR FULL eventsData ARRAY HERE ---------- */
+// const eventsData = [
+//   /* paste your full events array here exactly as before */
+// ];
+
+// const Events = () => {
+//   const [activeTab, setActiveTab] = useState("upcoming");
+//   const [isVerified, setIsVerified] = useState(false);
+//   const [checkingAuth, setCheckingAuth] = useState(true);
+
+//   // 🔐 Supabase verification
+//   useEffect(() => {
+//     const init = async () => {
+//       const {
+//         data: { session },
+//       } = await supabase.auth.getSession();
+
+//       if (session) {
+//         const uid = session.user.id;
+
+//         const { data: student } = await supabase
+//           .from("students")
+//           .select("is_verified")
+//           .eq("id", uid)
+//           .single();
+
+//         const { data: alumni } = await supabase
+//           .from("alumni")
+//           .select("is_verified")
+//           .eq("id", uid)
+//           .single();
+
+//         const { data: faculty } = await supabase
+//           .from("faculty")
+//           .select("is_verified")
+//           .eq("id", uid)
+//           .single();
+
+//         if (student?.is_verified || alumni?.is_verified || faculty?.is_verified) {
+//           setIsVerified(true);
+//         }
+//       }
+
+//       setCheckingAuth(false);
+//     };
+
+//     init();
+//   }, []);
+
+//   // 🧠 Hooks must ALWAYS run
+//   const now = new Date();
+
+//   const upcomingEvents = useMemo(
+//     () => eventsData.filter((e) => new Date(e.date) >= now),
+//     [now]
+//   );
+
+//   const pastEvents = useMemo(
+//     () => eventsData.filter((e) => new Date(e.date) < now),
+//     [now]
+//   );
+
+//   const eventsToDisplay = activeTab === "upcoming" ? upcomingEvents : pastEvents;
+
+//   const formatDate = (d) =>
+//     new Date(d).toLocaleDateString("en-IN", {
+//       year: "numeric",
+//       month: "long",
+//       day: "numeric",
+//     });
+
+//   const formatTime = (d) =>
+//     new Date(d).toLocaleTimeString("en-IN", {
+//       hour: "2-digit",
+//       minute: "2-digit",
+//     });
+
+//   // 🔐 AFTER all hooks → safe to return conditionally
+//   if (checkingAuth) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center text-blue-700 text-xl">
+//         Loading events...
+//       </div>
+//     );
+//   }
+
+//   if (!isVerified) {
+//     return (
+//       <section className="min-h-screen flex items-center justify-center bg-blue-50">
+//         <div className="bg-white p-10 rounded-xl shadow-lg text-center">
+//           <h2 className="text-2xl font-bold text-blue-700 mb-4">🔒 Events Locked</h2>
+//           <p className="text-gray-600">
+//             Only verified alumni, students, and faculty can access events.
+//           </p>
+//         </div>
+//       </section>
+//     );
+//   }
+
+//   // 🔓 Verified users reach here
+//   return (
+//     <section className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 md:px-8">
+//       <Helmet>
+//         <title>SITS Alumni Events</title>
+//       </Helmet>
+
+//       <h1 className="text-4xl font-bold text-blue-800 text-center mb-10">
+//         🗓️ Alumni & Student Events
+//       </h1>
+
+//       <div className="flex justify-center gap-4 mb-10">
+//         <button
+//           onClick={() => setActiveTab("upcoming")}
+//           className={`px-6 py-2 rounded ${
+//             activeTab === "upcoming"
+//               ? "bg-blue-600 text-white"
+//               : "bg-white"
+//           }`}
+//         >
+//           Upcoming
+//         </button>
+
+//         <button
+//           onClick={() => setActiveTab("past")}
+//           className={`px-6 py-2 rounded ${
+//             activeTab === "past"
+//               ? "bg-blue-600 text-white"
+//               : "bg-white"
+//           }`}
+//         >
+//           Past
+//         </button>
+//       </div>
+
+//       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+//         <AnimatePresence>
+//           {eventsToDisplay.map((event) => (
+//             <motion.div
+//               key={event.id}
+//               className="bg-white rounded-xl shadow p-4"
+//             >
+//               <h3 className="font-bold text-lg">{event.title}</h3>
+//               <p className="text-sm">
+//                 {formatDate(event.date)} {formatTime(event.date)}
+//               </p>
+//               <p className="text-sm">{event.location}</p>
+//               <p className="mt-2">{event.description}</p>
+//               <a
+//                 href={event.actionLink}
+//                 className="text-blue-600 mt-2 inline-block"
+//               >
+//                 {event.actionText}
+//               </a>
+//             </motion.div>
+//           ))}
+//         </AnimatePresence>
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Events;
+
+
+
+
+
+
+
+// ---------------------------------------------------------------3rd version online -------------------------------------------------
+
+
+
+
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet";
@@ -401,7 +580,11 @@ const Events = () => {
           .eq("id", uid)
           .single();
 
-        if (student?.is_verified || alumni?.is_verified || faculty?.is_verified) {
+        if (
+          student?.is_verified ||
+          alumni?.is_verified ||
+          faculty?.is_verified
+        ) {
           setIsVerified(true);
         }
       }
@@ -412,20 +595,19 @@ const Events = () => {
     init();
   }, []);
 
-  // 🧠 Hooks must ALWAYS run
-  const now = new Date();
+  // ✅ FIXED: stable "now" reference
+  const now = useMemo(() => new Date(), []);
 
-  const upcomingEvents = useMemo(
-    () => eventsData.filter((e) => new Date(e.date) >= now),
-    [now]
-  );
+  const upcomingEvents = useMemo(() => {
+    return eventsData.filter((e) => new Date(e.date) >= now);
+  }, [now]);
 
-  const pastEvents = useMemo(
-    () => eventsData.filter((e) => new Date(e.date) < now),
-    [now]
-  );
+  const pastEvents = useMemo(() => {
+    return eventsData.filter((e) => new Date(e.date) < now);
+  }, [now]);
 
-  const eventsToDisplay = activeTab === "upcoming" ? upcomingEvents : pastEvents;
+  const eventsToDisplay =
+    activeTab === "upcoming" ? upcomingEvents : pastEvents;
 
   const formatDate = (d) =>
     new Date(d).toLocaleDateString("en-IN", {
@@ -453,7 +635,9 @@ const Events = () => {
     return (
       <section className="min-h-screen flex items-center justify-center bg-blue-50">
         <div className="bg-white p-10 rounded-xl shadow-lg text-center">
-          <h2 className="text-2xl font-bold text-blue-700 mb-4">🔒 Events Locked</h2>
+          <h2 className="text-2xl font-bold text-blue-700 mb-4">
+            🔒 Events Locked
+          </h2>
           <p className="text-gray-600">
             Only verified alumni, students, and faculty can access events.
           </p>
@@ -488,9 +672,7 @@ const Events = () => {
         <button
           onClick={() => setActiveTab("past")}
           className={`px-6 py-2 rounded ${
-            activeTab === "past"
-              ? "bg-blue-600 text-white"
-              : "bg-white"
+            activeTab === "past" ? "bg-blue-600 text-white" : "bg-white"
           }`}
         >
           Past
@@ -503,6 +685,9 @@ const Events = () => {
             <motion.div
               key={event.id}
               className="bg-white rounded-xl shadow p-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
             >
               <h3 className="font-bold text-lg">{event.title}</h3>
               <p className="text-sm">

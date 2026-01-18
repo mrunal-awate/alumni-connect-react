@@ -471,52 +471,196 @@
 
 
 
-import React, { useState, useMemo, useEffect } from "react";
+// import React, { useState, useMemo, useEffect } from "react";
+// import { motion } from "framer-motion";
+// import { Helmet } from "react-helmet";
+// import { supabase } from "../supabaseClient";
+
+// /* ---- SAME MOCK DATA (unchanged) ---- */
+// const allJobListings = [/* your full array unchanged */];
+
+// const Internships = () => {
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [selectedType, setSelectedType] = useState("All");
+//   const [selectedLocation, setSelectedLocation] = useState("All");
+
+//   const [session, setSession] = useState(null);
+//   const [isVerified, setIsVerified] = useState(false);
+//   const [isAlumni, setIsAlumni] = useState(false);
+
+//   useEffect(() => {
+//     const init = async () => {
+//       const {
+//         data: { session },
+//       } = await supabase.auth.getSession();
+//       setSession(session);
+
+//       if (!session) return;
+
+//       const userId = session.user.id;
+
+//       // Check if verified in any role
+//       const { data: student } = await supabase
+//         .from("students")
+//         .select("is_verified")
+//         .eq("id", userId)
+//         .single();
+
+//       const { data: alumni } = await supabase
+//         .from("alumni")
+//         .select("is_verified")
+//         .eq("id", userId)
+//         .single();
+
+//       const { data: faculty } = await supabase
+//         .from("faculty")
+//         .select("is_verified")
+//         .eq("id", userId)
+//         .single();
+
+//       if (student?.is_verified || alumni?.is_verified || faculty?.is_verified) {
+//         setIsVerified(true);
+//       }
+
+//       if (alumni?.is_verified) {
+//         setIsAlumni(true);
+//       }
+//     };
+
+//     init();
+//   }, []);
+
+//   /* 🔐 Restrict visibility */
+//   const visibleJobs = isVerified ? allJobListings : allJobListings.slice(0, 3);
+
+//   const jobTypes = useMemo(() => ["All", ...new Set(allJobListings.map((job) => job.type))], []);
+//   const jobLocations = useMemo(() => ["All", ...new Set(allJobListings.map((job) => job.location))], []);
+
+//   const filteredJobs = useMemo(() => {
+//     return visibleJobs.filter((job) => {
+//       const matchesSearch =
+//         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//         job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//         job.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+//       const matchesType = selectedType === "All" || job.type === selectedType;
+//       const matchesLocation = selectedLocation === "All" || job.location === selectedLocation;
+
+//       return matchesSearch && matchesType && matchesLocation;
+//     });
+//   }, [searchTerm, selectedType, selectedLocation, visibleJobs]);
+
+//   const formatDate = (dateString) =>
+//     new Date(dateString).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+
+//   return (
+//     <section className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 md:px-8">
+//       <Helmet>
+//         <title>Jobs & Internships | SITS Alumni</title>
+//       </Helmet>
+
+//       <div className="text-center mb-12">
+//         <h1 className="text-4xl font-extrabold text-green-800 mb-4">💼 Alumni Job & Internship Postings</h1>
+//         {!isVerified && (
+//           <p className="text-red-600 font-semibold mt-2">
+//             🔒 Verify your account to see full job board
+//           </p>
+//         )}
+//       </div>
+
+//       {isAlumni && (
+//         <div className="text-center mb-10">
+//           <a
+//             href="#"
+//             className="bg-green-700 text-white px-6 py-3 rounded-full shadow hover:bg-green-800"
+//           >
+//             ➕ Post a Job / Internship
+//           </a>
+//         </div>
+//       )}
+
+//       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+//         {filteredJobs.map((job) => (
+//           <motion.div key={job.id} className="bg-white p-6 rounded-xl shadow">
+//             <h3 className="text-xl font-bold text-green-700">{job.title}</h3>
+//             <p>{job.company} — {job.location}</p>
+//             <span className="text-sm">{job.type}</span>
+//             <p className="text-xs mt-2">Posted {formatDate(job.postedDate)}</p>
+//             <a
+//               href={job.applyLink}
+//               className="inline-block mt-4 bg-green-600 text-white px-4 py-2 rounded"
+//             >
+//               Apply
+//             </a>
+//           </motion.div>
+//         ))}
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Internships;
+
+
+
+
+
+
+
+
+
+// ---------------------------- final version online -------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet";
 import { supabase } from "../supabaseClient";
 
 /* ---- SAME MOCK DATA (unchanged) ---- */
-const allJobListings = [/* your full array unchanged */];
+const allJobListings = [
+  /* your full array unchanged */
+];
 
 const Internships = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState("All");
-  const [selectedLocation, setSelectedLocation] = useState("All");
-
-  const [session, setSession] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
   const [isAlumni, setIsAlumni] = useState(false);
 
+  /* 🔐 Auth + verification */
   useEffect(() => {
     const init = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      setSession(session);
 
       if (!session) return;
 
       const userId = session.user.id;
 
-      // Check if verified in any role
       const { data: student } = await supabase
         .from("students")
         .select("is_verified")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       const { data: alumni } = await supabase
         .from("alumni")
         .select("is_verified")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       const { data: faculty } = await supabase
         .from("faculty")
         .select("is_verified")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (student?.is_verified || alumni?.is_verified || faculty?.is_verified) {
         setIsVerified(true);
@@ -531,27 +675,16 @@ const Internships = () => {
   }, []);
 
   /* 🔐 Restrict visibility */
-  const visibleJobs = isVerified ? allJobListings : allJobListings.slice(0, 3);
-
-  const jobTypes = useMemo(() => ["All", ...new Set(allJobListings.map((job) => job.type))], []);
-  const jobLocations = useMemo(() => ["All", ...new Set(allJobListings.map((job) => job.location))], []);
-
-  const filteredJobs = useMemo(() => {
-    return visibleJobs.filter((job) => {
-      const matchesSearch =
-        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesType = selectedType === "All" || job.type === selectedType;
-      const matchesLocation = selectedLocation === "All" || job.location === selectedLocation;
-
-      return matchesSearch && matchesType && matchesLocation;
-    });
-  }, [searchTerm, selectedType, selectedLocation, visibleJobs]);
+  const visibleJobs = isVerified
+    ? allJobListings
+    : allJobListings.slice(0, 3);
 
   const formatDate = (dateString) =>
-    new Date(dateString).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    new Date(dateString).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
 
   return (
     <section className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 md:px-8">
@@ -560,7 +693,9 @@ const Internships = () => {
       </Helmet>
 
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-extrabold text-green-800 mb-4">💼 Alumni Job & Internship Postings</h1>
+        <h1 className="text-4xl font-extrabold text-green-800 mb-4">
+          💼 Alumni Job & Internship Postings
+        </h1>
         {!isVerified && (
           <p className="text-red-600 font-semibold mt-2">
             🔒 Verify your account to see full job board
@@ -570,25 +705,36 @@ const Internships = () => {
 
       {isAlumni && (
         <div className="text-center mb-10">
-          <a
-            href="#"
-            className="bg-green-700 text-white px-6 py-3 rounded-full shadow hover:bg-green-800"
+          <button
+            type="button"
+            className="bg-green-700 text-white px-6 py-3 rounded-full shadow hover:bg-green-800 transition"
           >
             ➕ Post a Job / Internship
-          </a>
+          </button>
         </div>
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-        {filteredJobs.map((job) => (
-          <motion.div key={job.id} className="bg-white p-6 rounded-xl shadow">
-            <h3 className="text-xl font-bold text-green-700">{job.title}</h3>
-            <p>{job.company} — {job.location}</p>
-            <span className="text-sm">{job.type}</span>
-            <p className="text-xs mt-2">Posted {formatDate(job.postedDate)}</p>
+        {visibleJobs.map((job) => (
+          <motion.div
+            key={job.id}
+            className="bg-white p-6 rounded-xl shadow"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h3 className="text-xl font-bold text-green-700">
+              {job.title}
+            </h3>
+            <p className="text-gray-700">
+              {job.company} — {job.location}
+            </p>
+            <span className="text-sm text-gray-500">{job.type}</span>
+            <p className="text-xs mt-2 text-gray-400">
+              Posted {formatDate(job.postedDate)}
+            </p>
             <a
               href={job.applyLink}
-              className="inline-block mt-4 bg-green-600 text-white px-4 py-2 rounded"
+              className="inline-block mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
             >
               Apply
             </a>
