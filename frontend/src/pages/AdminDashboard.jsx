@@ -143,13 +143,54 @@ import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 
 const AdminDashboard = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, authLoading } = useAuth();
 
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  /* ---------------- SAFETY ---------------- */
+  /* ---------------- FETCH PENDING USERS ---------------- */
+  useEffect(() => {
+    // ⛔ Do NOT return early before hooks
+    if (!isAdmin) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchPendingUsers = async () => {
+      try {
+        const { data: alumni } = await supabase
+          .from("alumni")
+          .select("id, full_name, email, is_verified")
+          .eq("is_verified", false);
+
+        const { data: faculty } = await supabase
+          .from("faculty")
+          .select("id, full_name, email, is_verified")
+          .eq("is_verified", false);
+
+        const combined = [
+          ...(alumni || []).map((a) => ({ ...a, role: "Alumni" })),
+          ...(faculty || []).map((f) => ({ ...f, role: "Faculty" })),
+        ];
+
+        setPendingUsers(combined);
+      } catch (err) {
+        console.error("Failed to fetch pending users:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPendingUsers();
+  }, [isAdmin]);
+
+  /* ---------------- UI STATES ---------------- */
+
+  if (authLoading) {
+    return <p style={styles.status}>Checking admin access...</p>;
+  }
+
   if (!isAdmin) {
     return (
       <div style={styles.center}>
@@ -159,46 +200,12 @@ const AdminDashboard = () => {
     );
   }
 
-  /* ---------------- FETCH PENDING USERS ---------------- */
-  useEffect(() => {
-    fetchPendingUsers();
-  }, []);
-
-  const fetchPendingUsers = async () => {
-    setLoading(true);
-    try {
-      const { data: alumni } = await supabase
-        .from("alumni")
-        .select("id, full_name, email, is_verified")
-        .eq("is_verified", false);
-
-      const { data: faculty } = await supabase
-        .from("faculty")
-        .select("id, full_name, email, is_verified")
-        .eq("is_verified", false);
-
-      const combined = [
-        ...(alumni || []).map((a) => ({ ...a, role: "Alumni" })),
-        ...(faculty || []).map((f) => ({ ...f, role: "Faculty" })),
-      ];
-
-      setPendingUsers(combined);
-    } catch (err) {
-      console.error("Failed to fetch pending users:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ---------------- APPROVE USER (UI READY) ---------------- */
+  /* ---------------- APPROVE USER ---------------- */
   const handleApprove = async (id, role) => {
     try {
       const table = role === "Alumni" ? "alumni" : "faculty";
 
-      await supabase
-        .from(table)
-        .update({ is_verified: true })
-        .eq("id", id);
+      await supabase.from(table).update({ is_verified: true }).eq("id", id);
 
       setPendingUsers((prev) => prev.filter((u) => u.id !== id));
       setMessage(`✅ ${role} approved successfully`);
@@ -210,7 +217,7 @@ const AdminDashboard = () => {
     setTimeout(() => setMessage(""), 3000);
   };
 
-  /* ---------------- UI ---------------- */
+  /* ---------------- MAIN UI ---------------- */
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>🛡️ Admin Dashboard</h2>
