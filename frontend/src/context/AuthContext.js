@@ -466,7 +466,168 @@
 
 
 
-import { createContext, useContext, useEffect, useState } from "react";
+// import { createContext, useContext, useEffect, useState } from "react";
+// import { supabase } from "../supabaseClient";
+
+// const AuthContext = createContext();
+
+// export const AuthProvider = ({ children }) => {
+//   const [session, setSession] = useState(null);
+//   const [user, setUser] = useState(null);
+//   const [role, setRole] = useState(null); // alumni | student | faculty | null
+//   const [isVerified, setIsVerified] = useState(false);
+//   const [authLoading, setAuthLoading] = useState(true);
+
+//   /* ---------------- SAFETY LAYER ---------------- */
+
+//   const forceLogout = async () => {
+//     try {
+//       await supabase.auth.signOut();
+//     } catch {}
+//     localStorage.clear(); // 🔥 kill corrupted refresh tokens
+//     setSession(null);
+//     setUser(null);
+//     setRole(null);
+//     setIsVerified(false);
+//   };
+
+//   const safeSingle = async (query) => {
+//     try {
+//       const { data, error } = await query;
+//       if (error) return null;
+//       return data;
+//     } catch {
+//       return null;
+//     }
+//   };
+
+//   /* ---------------- ROLE DETECTION ---------------- */
+
+//   const resolveRole = async (uid) => {
+//     // Alumni
+//     const alumni = await safeSingle(
+//       supabase.from("alumni").select("is_verified").eq("id", uid).maybeSingle()
+//     );
+//     if (alumni) {
+//       setRole("alumni");
+//       setIsVerified(!!alumni.is_verified);
+//       return;
+//     }
+
+//     // Student
+//     const student = await safeSingle(
+//       supabase.from("students").select("is_verified").eq("id", uid).maybeSingle()
+//     );
+//     if (student) {
+//       setRole("student");
+//       setIsVerified(!!student.is_verified);
+//       return;
+//     }
+
+//     // Faculty
+//     const faculty = await safeSingle(
+//       supabase.from("faculty").select("is_verified").eq("id", uid).maybeSingle()
+//     );
+//     if (faculty) {
+//       setRole("faculty");
+//       setIsVerified(!!faculty.is_verified);
+//       return;
+//     }
+
+//     setRole(null);
+//     setIsVerified(false);
+//   };
+
+//   /* ---------------- BOOTSTRAP ---------------- */
+
+//   useEffect(() => {
+//     const boot = async () => {
+//       try {
+//         const { data, error } = await supabase.auth.getSession();
+
+//         // Broken refresh token → wipe storage
+//         if (error) throw error;
+
+//         const session = data.session;
+//         setSession(session);
+//         setUser(session?.user || null);
+
+//         if (session?.user) {
+//           await resolveRole(session.user.id);
+//         }
+//       } catch {
+//         await forceLogout(); // 🧹 prevent white screen
+//       } finally {
+//         setAuthLoading(false);
+//       }
+//     };
+
+//     boot();
+
+//     const { data: listener } = supabase.auth.onAuthStateChange(
+//       async (_event, session) => {
+//         try {
+//           setSession(session);
+//           setUser(session?.user || null);
+
+//           if (session?.user) {
+//             await resolveRole(session.user.id);
+//           } else {
+//             setRole(null);
+//             setIsVerified(false);
+//           }
+//         } catch {
+//           await forceLogout();
+//         }
+//       }
+//     );
+
+//     return () => listener.subscription.unsubscribe();
+//   }, []);
+
+//   /* ---------------- EXPORT ---------------- */
+
+//   return (
+//     <AuthContext.Provider
+//       value={{
+//         session,
+//         user,
+//         role,
+//         isVerified,
+//         isAuthenticated: !!session,
+//         isAlumni: role === "alumni",
+//         isStudent: role === "student",
+//         isFaculty: role === "faculty",
+//         authLoading,
+//         logout: forceLogout,
+//       }}
+//     >
+//       {children}
+//     </AuthContext.Provider>
+//   );
+// };
+
+// export const useAuth = () => useContext(AuthContext);
+
+
+
+
+
+
+// -------------------------------------------------final version online-------------------------------------------------------
+
+
+
+
+
+
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { supabase } from "../supabaseClient";
 
 const AuthContext = createContext();
@@ -480,7 +641,7 @@ export const AuthProvider = ({ children }) => {
 
   /* ---------------- SAFETY LAYER ---------------- */
 
-  const forceLogout = async () => {
+  const forceLogout = useCallback(async () => {
     try {
       await supabase.auth.signOut();
     } catch {}
@@ -489,9 +650,9 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setRole(null);
     setIsVerified(false);
-  };
+  }, []);
 
-  const safeSingle = async (query) => {
+  const safeSingle = useCallback(async (query) => {
     try {
       const { data, error } = await query;
       if (error) return null;
@@ -499,44 +660,55 @@ export const AuthProvider = ({ children }) => {
     } catch {
       return null;
     }
-  };
+  }, []);
 
   /* ---------------- ROLE DETECTION ---------------- */
 
-  const resolveRole = async (uid) => {
-    // Alumni
-    const alumni = await safeSingle(
-      supabase.from("alumni").select("is_verified").eq("id", uid).maybeSingle()
-    );
-    if (alumni) {
-      setRole("alumni");
-      setIsVerified(!!alumni.is_verified);
-      return;
-    }
+  const resolveRole = useCallback(
+    async (uid) => {
+      // Alumni
+      const alumni = await safeSingle(
+        supabase.from("alumni").select("is_verified").eq("id", uid).maybeSingle()
+      );
+      if (alumni) {
+        setRole("alumni");
+        setIsVerified(!!alumni.is_verified);
+        return;
+      }
 
-    // Student
-    const student = await safeSingle(
-      supabase.from("students").select("is_verified").eq("id", uid).maybeSingle()
-    );
-    if (student) {
-      setRole("student");
-      setIsVerified(!!student.is_verified);
-      return;
-    }
+      // Student
+      const student = await safeSingle(
+        supabase
+          .from("students")
+          .select("is_verified")
+          .eq("id", uid)
+          .maybeSingle()
+      );
+      if (student) {
+        setRole("student");
+        setIsVerified(!!student.is_verified);
+        return;
+      }
 
-    // Faculty
-    const faculty = await safeSingle(
-      supabase.from("faculty").select("is_verified").eq("id", uid).maybeSingle()
-    );
-    if (faculty) {
-      setRole("faculty");
-      setIsVerified(!!faculty.is_verified);
-      return;
-    }
+      // Faculty
+      const faculty = await safeSingle(
+        supabase
+          .from("faculty")
+          .select("is_verified")
+          .eq("id", uid)
+          .maybeSingle()
+      );
+      if (faculty) {
+        setRole("faculty");
+        setIsVerified(!!faculty.is_verified);
+        return;
+      }
 
-    setRole(null);
-    setIsVerified(false);
-  };
+      setRole(null);
+      setIsVerified(false);
+    },
+    [safeSingle]
+  );
 
   /* ---------------- BOOTSTRAP ---------------- */
 
@@ -548,12 +720,12 @@ export const AuthProvider = ({ children }) => {
         // Broken refresh token → wipe storage
         if (error) throw error;
 
-        const session = data.session;
-        setSession(session);
-        setUser(session?.user || null);
+        const currentSession = data.session;
+        setSession(currentSession);
+        setUser(currentSession?.user || null);
 
-        if (session?.user) {
-          await resolveRole(session.user.id);
+        if (currentSession?.user) {
+          await resolveRole(currentSession.user.id);
         }
       } catch {
         await forceLogout(); // 🧹 prevent white screen
@@ -565,13 +737,13 @@ export const AuthProvider = ({ children }) => {
     boot();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (_event, newSession) => {
         try {
-          setSession(session);
-          setUser(session?.user || null);
+          setSession(newSession);
+          setUser(newSession?.user || null);
 
-          if (session?.user) {
-            await resolveRole(session.user.id);
+          if (newSession?.user) {
+            await resolveRole(newSession.user.id);
           } else {
             setRole(null);
             setIsVerified(false);
@@ -583,7 +755,7 @@ export const AuthProvider = ({ children }) => {
     );
 
     return () => listener.subscription.unsubscribe();
-  }, []);
+  }, [resolveRole, forceLogout]);
 
   /* ---------------- EXPORT ---------------- */
 
