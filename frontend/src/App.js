@@ -482,6 +482,177 @@
 
 
 
+// import React from "react";
+// import {
+//   BrowserRouter as Router,
+//   Routes,
+//   Route,
+//   Navigate,
+// } from "react-router-dom";
+
+// import Home from "./pages/Home";
+// import MemberSection from "./components/MemberSection";
+// import NotFound from "./pages/NotFound";
+// import AlumniProfileView from "./pages/AlumniProfileView";
+// import AlumniSessions from "./pages/AlumniSessions";
+// import Internships from "./pages/Internships";
+// import ConnectForum from "./pages/ConnectForum";
+// import Membership from "./pages/Membership";
+// import AlumniProfileForm from "./pages/AlumniProfileForm";
+// import AdminDashboard from "./pages/AdminDashboard";
+// import Events from "./components/Events";
+// import AboutUs from "./components/About";
+// import ContactUs from "./components/Contact";
+
+// import { AuthProvider, useAuth } from "./context/AuthContext";
+
+// /* =======================
+//    🔐 PRIVATE ROUTE
+// ======================= */
+// const PrivateRoute = ({ children }) => {
+//   const { isAuthenticated, authLoading } = useAuth();
+
+//   if (authLoading) {
+//     return (
+//       <div style={{ textAlign: "center", marginTop: "80px", fontSize: "20px" }}>
+//         Loading...
+//       </div>
+//     );
+//   }
+
+//   return isAuthenticated ? children : <Navigate to="/" replace />;
+// };
+
+// /* =======================
+//    👑 ADMIN ROUTE
+// ======================= */
+// const AdminRoute = ({ children }) => {
+//   const { isAdmin, authLoading } = useAuth();
+
+//   if (authLoading) {
+//     return (
+//       <div style={{ textAlign: "center", marginTop: "80px", fontSize: "20px" }}>
+//         Loading...
+//       </div>
+//     );
+//   }
+
+//   return isAdmin ? children : <Navigate to="/" replace />;
+// };
+
+// /* =======================
+//    🚀 APP
+// ======================= */
+// function App() {
+//   return (
+//     <AuthProvider>
+//       <Router>
+//         <Routes>
+//           {/* 🌐 Public Routes */}
+//           <Route path="/" element={<Home />} />
+//           <Route path="/events" element={<Events />} />
+//           <Route path="/about" element={<AboutUs />} />
+//           <Route path="/contact" element={<ContactUs />} />
+
+//           {/* 🔐 Authenticated User Routes */}
+//           <Route
+//             path="/members"
+//             element={
+//               <PrivateRoute>
+//                 <MemberSection />
+//               </PrivateRoute>
+//             }
+//           />
+//           <Route
+//             path="/alumni-profile"
+//             element={
+//               <PrivateRoute>
+//                 <AlumniProfileForm />
+//               </PrivateRoute>
+//             }
+//           />
+//           <Route
+//             path="/alumni-sessions"
+//             element={
+//               <PrivateRoute>
+//                 <AlumniSessions />
+//               </PrivateRoute>
+//             }
+//           />
+//           <Route
+//             path="/internships"
+//             element={
+//               <PrivateRoute>
+//                 <Internships />
+//               </PrivateRoute>
+//             }
+//           />
+//           <Route
+//             path="/connect-forum"
+//             element={
+//               <PrivateRoute>
+//                 <ConnectForum />
+//               </PrivateRoute>
+//             }
+//           />
+//           <Route
+//             path="/membership"
+//             element={
+//               <PrivateRoute>
+//                 <Membership />
+//               </PrivateRoute>
+//             }
+//           />
+//           <Route
+//             path="/profile/:id"
+//             element={
+//               <PrivateRoute>
+//                 <AlumniProfileView />
+//               </PrivateRoute>
+//             }
+//           />
+
+//           {/* 👑 Admin Routes (SCALABLE) */}
+//           <Route
+//             path="/admin/*"
+//             element={
+//               <AdminRoute>
+//                 <AdminDashboard />
+//               </AdminRoute>
+//             }
+//           />
+
+//           {/* ❌ Not Found */}
+//           <Route path="*" element={<NotFound />} />
+//         </Routes>
+//       </Router>
+//     </AuthProvider>
+//   );
+// }
+
+// export default App;
+
+
+
+
+
+
+
+
+
+// ---------------------------- final final version ------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -612,7 +783,10 @@ function App() {
             }
           />
 
-          {/* 👑 Admin Routes (SCALABLE) */}
+          {/* 👑 Admin Redirect (IMPORTANT FIX) */}
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+
+          {/* 👑 Admin Routes */}
           <Route
             path="/admin/*"
             element={
