@@ -342,7 +342,8 @@ import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 
 const AdminDashboard = () => {
-  const { isAdmin, authLoading } = useAuth();
+  const { isAdmin } = useAuth();
+  // const { isAdmin, authLoading } = useAuth();
 
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
