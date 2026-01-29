@@ -698,9 +698,9 @@ const PrivateRoute = ({ children }) => {
    👑 ADMIN ROUTE
 ======================= */
 const AdminRoute = ({ children }) => {
-  const { isAdmin, role, authLoading } = useAuth();
+  const { isAdmin, authLoading } = useAuth();
 
-  if (authLoading || role === null) {
+  if (authLoading) {
     return (
       <div style={{ textAlign: "center", marginTop: "80px", fontSize: "20px" }}>
         Loading admin panel...
