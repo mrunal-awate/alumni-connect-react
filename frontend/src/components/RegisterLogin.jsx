@@ -1419,7 +1419,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
 
       /* ✅ ADMIN CHECK */
       const { data: admin } = await supabase
-        .from("admins")
+        .from("admin")
         .select("user_id")
         .eq("user_id", user.id)
         .maybeSingle();
