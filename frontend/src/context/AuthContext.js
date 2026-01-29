@@ -1034,9 +1034,7 @@ export const AuthProvider = ({ children }) => {
   const resolveRole = useCallback(async (uid) => {
     console.log("RESOLVE ROLE FOR UID:", uid);
 
-    setRole(null);
-    setIsVerified(false);
-
+    
     /* 👨‍💼 ADMIN */
     const { data: admin, error: adminError } = await supabase
       .from("admin")
@@ -1095,7 +1093,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     /* ❌ NO ROLE */
-    setRole(null);
+    setRole("guest");
     setIsVerified(false);
   }, []);
 
