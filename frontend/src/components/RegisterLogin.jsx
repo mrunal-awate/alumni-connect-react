@@ -1417,7 +1417,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
 
       /* ✅ ADMIN CHECK */
       const { data: admin } = await supabase
-        .from("admin")
+        .from("admin") 
         .select("user_id")
         .eq("user_id", user.id)
         .maybeSingle();
@@ -1426,9 +1426,15 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
         setMessage("Admin login successful!");
         setIsError(false);
         showTemporaryPopup();
-        if (onSuccess) setTimeout(onSuccess, 500);
+
+        // ✅ redirect admin
+        if (onSuccess) {
+          setTimeout(() => onSuccess("/admin"), 500);
+       }
+
         return;
-      }
+    }
+
 
       /* ✅ ROLE TABLE CHECK */
       let tableName = null;

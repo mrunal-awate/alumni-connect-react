@@ -784,11 +784,11 @@ function App() {
           />
 
           {/* 👑 Admin Redirect (IMPORTANT FIX) */}
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          {/* <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />  */}
 
           {/* 👑 Admin Routes */}
           <Route
-            path="/admin/*"
+            path="/admin*"
             element={
               <AdminRoute>
                 <AdminDashboard />
