@@ -426,8 +426,7 @@ const AdminDashboard = () => {
     setTimeout(() => setMessage(""), 3000);
   };
 
-  console.log("ADMIN DASHBOARD RENDERED");
-
+  
 
   /* ---------------- UI ---------------- */
   return (

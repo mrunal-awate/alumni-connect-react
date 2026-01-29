@@ -1429,7 +1429,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
 
         // ✅ redirect admin
         if (onSuccess) {
-          setTimeout(() => onSuccess("/admin"), 500);
+          setTimeout(() => onSuccess("/admin/*"), 500);
        }
 
         return;
