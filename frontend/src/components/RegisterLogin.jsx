@@ -1278,12 +1278,10 @@
 
 
 
-
-
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 
-/* ---------- constants unchanged ---------- */
+/* ---------- constants ---------- */
 const COLLEGES = [
   "Sinhgad College of Engineering (SCOE)",
   "Smt. Kashibai Navale College of Engineering (SKNCOE)",
@@ -1332,7 +1330,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
     setIsError(false);
 
     try {
-      /* ================= REGISTER (UNCHANGED) ================= */
+      /* ================= REGISTER ================= */
       if (formData.type === "register") {
         if (!formData.college) throw new Error("Please select college");
 
@@ -1407,7 +1405,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
         return;
       }
 
-      /* ================= LOGIN (FIXED) ================= */
+      /* ================= LOGIN ================= */
 
       const { data: loginData, error } =
         await supabase.auth.signInWithPassword({
@@ -1419,24 +1417,22 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
 
       const user = loginData.user;
 
-      /* ✅ 1️⃣ CHECK ADMIN FIRST */
+      /* ✅ ADMIN CHECK */
       const { data: admin } = await supabase
-        .from("admin")
+        .from("admins")
         .select("user_id")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (admin) {
-        // ✅ Admin login allowed immediately
         setMessage("Admin login successful!");
         setIsError(false);
         showTemporaryPopup();
-
         if (onSuccess) setTimeout(onSuccess, 500);
         return;
       }
 
-      /* ✅ 2️⃣ CHECK USER TABLES */
+      /* ✅ ROLE TABLE CHECK */
       let tableName = null;
 
       const { data: student } = await supabase
@@ -1444,7 +1440,6 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
         .select("is_verified")
         .eq("id", user.id)
         .maybeSingle();
-
       if (student) tableName = "students";
 
       const { data: alumni } = await supabase
@@ -1452,7 +1447,6 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
         .select("is_verified")
         .eq("id", user.id)
         .maybeSingle();
-
       if (alumni) tableName = "alumni";
 
       const { data: faculty } = await supabase
@@ -1460,7 +1454,6 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
         .select("is_verified")
         .eq("id", user.id)
         .maybeSingle();
-
       if (faculty) tableName = "faculty";
 
       if (!tableName) {
@@ -1468,7 +1461,6 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
         throw new Error("User role not found. Contact admin.");
       }
 
-      /* ✅ 3️⃣ VERIFY APPROVAL */
       const { data: record } = await supabase
         .from(tableName)
         .select("is_verified")
@@ -1480,11 +1472,9 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
         throw new Error("Account pending admin verification.");
       }
 
-      /* ✅ VERIFIED USER */
       setMessage("Login successful!");
       setIsError(false);
       showTemporaryPopup();
-
       if (onSuccess) setTimeout(onSuccess, 500);
     } catch (error) {
       setIsError(true);
@@ -1495,7 +1485,6 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
 
   const isRegister = formData.type === "register";
 
-  /* ---------- UI unchanged ---------- */
   return (
     <section style={styles.section}>
       <div style={styles.card}>
@@ -1516,6 +1505,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
             required
             style={styles.input}
           />
+
           <input
             type="password"
             name="password"
@@ -1526,8 +1516,70 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
             style={styles.input}
           />
 
-          {/* registration UI unchanged */}
-          {/* ... */}
+          {isRegister && (
+            <>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                style={styles.input}
+              >
+                <option value="student">Student</option>
+                <option value="alumni">Alumni</option>
+                <option value="faculty">Faculty</option>
+              </select>
+
+              <select
+                name="college"
+                value={formData.college}
+                onChange={handleChange}
+                style={styles.input}
+              >
+                <option value="">Select College</option>
+                {COLLEGES.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+
+              {formData.role === "student" && (
+                <input
+                  name="prn"
+                  placeholder="PRN"
+                  value={formData.prn}
+                  onChange={handleChange}
+                  style={styles.input}
+                />
+              )}
+
+              {formData.role !== "faculty" && (
+                <select
+                  name="branch"
+                  value={formData.branch}
+                  onChange={handleChange}
+                  style={styles.input}
+                >
+                  <option value="">Select Branch</option>
+                  {BRANCHES.map((b) => (
+                    <option key={b}>{b}</option>
+                  ))}
+                </select>
+              )}
+
+              {formData.role === "faculty" && (
+                <select
+                  name="department"
+                  value={formData.department}
+                  onChange={handleChange}
+                  style={styles.input}
+                >
+                  <option value="">Select Department</option>
+                  {DEPARTMENTS.map((d) => (
+                    <option key={d}>{d}</option>
+                  ))}
+                </select>
+              )}
+            </>
+          )}
 
           <button type="submit" style={styles.button}>
             {isRegister ? "Register" : "Login"}
@@ -1538,5 +1590,29 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
   );
 };
 
-/* styles unchanged */
+/* ---------- STYLES (FIXED) ---------- */
+const styles = {
+  section: { padding: 0 },
+  card: {
+    background: "#fff",
+    padding: 30,
+    borderRadius: 12,
+    maxWidth: 450,
+    margin: "auto",
+  },
+  heading: { color: "#004080", marginBottom: 20 },
+  form: { display: "flex", flexDirection: "column", gap: 10 },
+  input: { padding: 12, borderRadius: 6, border: "1px solid #ccc" },
+  button: {
+    padding: 12,
+    background: "#004080",
+    color: "#fff",
+    border: "none",
+    borderRadius: 6,
+    cursor: "pointer",
+  },
+  popupSuccess: { background: "#d4edda", padding: 10, marginBottom: 10 },
+  popupError: { background: "#f8d7da", padding: 10, marginBottom: 10 },
+};
+
 export default RegisterLogin;
