@@ -1032,21 +1032,28 @@ export const AuthProvider = ({ children }) => {
   /* ---------------- ROLE RESOLUTION ---------------- */
 
   const resolveRole = useCallback(async (uid) => {
+    console.log("RESOLVE ROLE FOR UID:", uid);
+
     setRole(null);
     setIsVerified(false);
 
     /* 👨‍💼 ADMIN */
-    const { data: admin } = await supabase
+    const { data: admin, error: adminError } = await supabase
       .from("admin")
       .select("user_id")
       .eq("user_id", uid)
       .maybeSingle();
 
+    console.log("ADMIN QUERY RESULT:", admin, adminError);
+
     if (admin) {
+      console.log("ADMIN ROLE DETECTED");
       setRole("admin");
       setIsVerified(true);
       return;
     }
+
+    console.log("ADMIN NOT FOUND, CHECKING OTHER ROLES...");
 
     /* 🧑‍🎓 ALUMNI */
     const { data: alumni } = await supabase

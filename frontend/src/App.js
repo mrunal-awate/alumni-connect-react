@@ -698,12 +698,12 @@ const PrivateRoute = ({ children }) => {
    👑 ADMIN ROUTE
 ======================= */
 const AdminRoute = ({ children }) => {
-  const { isAdmin, authLoading } = useAuth();
+  const { isAdmin, role, authLoading } = useAuth();
 
-  if (authLoading) {
+  if (authLoading || role === null) {
     return (
       <div style={{ textAlign: "center", marginTop: "80px", fontSize: "20px" }}>
-        Loading...
+        Loading admin panel...
       </div>
     );
   }
@@ -782,9 +782,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
-          {/* 👑 Admin Redirect (IMPORTANT FIX) */}
-          {/* <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />  */}
 
           {/* 👑 Admin Routes */}
           <Route

@@ -1279,6 +1279,7 @@
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 
+
 /* ---------- constants ---------- */
 const COLLEGES = [
   "Sinhgad College of Engineering (SCOE)",
