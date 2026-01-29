@@ -391,18 +391,18 @@ const AdminDashboard = () => {
   }, [isAdmin]);
 
   /* ---------------- ACCESS CHECK ---------------- */
-  if (authLoading) {
-    return <p style={styles.status}>Checking admin access...</p>;
-  }
+  // if (authLoading) {
+  //   return <p style={styles.status}>Checking admin access...</p>;
+  // }
 
-  if (!isAdmin) {
-    return (
-      <div style={styles.center}>
-        <h2>⛔ Access Denied</h2>
-        <p>You are not authorized to view this page.</p>
-      </div>
-    );
-  }
+  // if (!isAdmin) {
+  //   return (
+  //     <div style={styles.center}>
+  //       <h2>⛔ Access Denied</h2>
+  //       <p>You are not authorized to view this page.</p>
+  //     </div>
+  //   );
+  // }
 
   /* ---------------- APPROVE USER ---------------- */
   const handleApprove = async (id, role) => {
