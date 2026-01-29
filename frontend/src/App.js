@@ -697,19 +697,25 @@ const PrivateRoute = ({ children }) => {
 /* =======================
    👑 ADMIN ROUTE
 ======================= */
+// const AdminRoute = ({ children }) => {
+//   const { isAdmin, authLoading } = useAuth();
+
+//   if (authLoading) {
+//     return (
+//       <div style={{ textAlign: "center", marginTop: "80px", fontSize: "20px" }}>
+//         Loading admin panel...
+//       </div>
+//     );
+//   }
+
+//   return isAdmin ? children : <Navigate to="/" replace />;
+// };
+
+
 const AdminRoute = ({ children }) => {
-  const { isAdmin, authLoading } = useAuth();
-
-  if (authLoading) {
-    return (
-      <div style={{ textAlign: "center", marginTop: "80px", fontSize: "20px" }}>
-        Loading admin panel...
-      </div>
-    );
-  }
-
-  return isAdmin ? children : <Navigate to="/" replace />;
+  return children;
 };
+
 
 /* =======================
    🚀 APP
