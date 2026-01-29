@@ -1276,8 +1276,6 @@
 
 
 
-
-
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 
@@ -1585,12 +1583,29 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
             {isRegister ? "Register" : "Login"}
           </button>
         </form>
+
+        {/* ✅ LOGIN / REGISTER TOGGLE (ADDED) */}
+        <p style={styles.toggleText}>
+          {isRegister ? "Already have an account?" : "New user?"}{" "}
+          <button
+            type="button"
+            onClick={() =>
+              setFormData((prev) => ({
+                ...prev,
+                type: prev.type === "register" ? "login" : "register",
+              }))
+            }
+            style={styles.toggleBtn}
+          >
+            {isRegister ? "Login here" : "Register here"}
+          </button>
+        </p>
       </div>
     </section>
   );
 };
 
-/* ---------- STYLES (FIXED) ---------- */
+/* ---------- STYLES ---------- */
 const styles = {
   section: { padding: 0 },
   card: {
@@ -1613,6 +1628,21 @@ const styles = {
   },
   popupSuccess: { background: "#d4edda", padding: 10, marginBottom: 10 },
   popupError: { background: "#f8d7da", padding: 10, marginBottom: 10 },
+
+  /* ✅ ADDED */
+  toggleText: {
+    marginTop: 15,
+    fontSize: 14,
+    textAlign: "center",
+  },
+  toggleBtn: {
+    background: "none",
+    border: "none",
+    color: "#004080",
+    cursor: "pointer",
+    fontWeight: "bold",
+    textDecoration: "underline",
+  },
 };
 
 export default RegisterLogin;
