@@ -675,6 +675,14 @@ import Events from "./components/Events";
 import AboutUs from "./components/About";
 import ContactUs from "./components/Contact";
 
+
+// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// import ConnectForum from './components/ConnectForum';
+import Mentorship from './components/Mentorship';
+import SuccessStories from './components/SuccessStories';
+import ResourceExchange from './components/ResourceExchange';
+
+
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 /* =======================
@@ -788,6 +796,11 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route path="/connect-forum" element={<ConnectForum />} />
+          <Route path="/mentorship" element={<Mentorship />} />
+          <Route path="/success-stories" element={<SuccessStories />} />
+          <Route path="/resource-exchange" element={<ResourceExchange />} />
+          
 
           {/* 👑 Admin Routes */}
           <Route
