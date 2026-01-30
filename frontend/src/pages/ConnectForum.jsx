@@ -941,16 +941,159 @@
 
 
 
-import React, { useState, useEffect } from "react";
+// import React, { useState, useEffect } from "react";
+// import { Helmet } from "react-helmet";
+// import { supabase } from "../supabaseClient";
+
+// const ConnectForum = () => {
+//   const [userRole, setUserRole] = useState("guest"); // student | alumni | faculty | guest
+//   const [isVerified, setIsVerified] = useState(false);
+//   const [posts, setPosts] = useState([]);
+
+//   /* 🔐 Identify user from Supabase */
+//   useEffect(() => {
+//     const init = async () => {
+//       const {
+//         data: { session },
+//       } = await supabase.auth.getSession();
+
+//       if (!session) return;
+
+//       const uid = session.user.id;
+
+//       const { data: student } = await supabase
+//         .from("students")
+//         .select("is_verified")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       const { data: alumni } = await supabase
+//         .from("alumni")
+//         .select("is_verified")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       const { data: faculty } = await supabase
+//         .from("faculty")
+//         .select("is_verified")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       if (student?.is_verified) {
+//         setUserRole("student");
+//         setIsVerified(true);
+//       } else if (alumni?.is_verified) {
+//         setUserRole("alumni");
+//         setIsVerified(true);
+//       } else if (faculty?.is_verified) {
+//         setUserRole("faculty");
+//         setIsVerified(true);
+//       }
+//     };
+
+//     init();
+//   }, []);
+
+//   /* 🧠 Load forum posts */
+//   useEffect(() => {
+//     const load = async () => {
+//       const { data } = await supabase
+//         .from("forum_posts")
+//         .select("*, forum_replies(*)")
+//         .order("created_at", { ascending: false });
+
+//       setPosts(data || []);
+//     };
+
+//     load();
+//   }, []);
+
+//   const canReply = isVerified;
+//   const isAlumni = userRole === "alumni";
+
+//   return (
+//     <section className="min-h-screen bg-purple-50 p-10">
+//       <Helmet>
+//         <title>Connect Forum</title>
+//       </Helmet>
+
+//       <h1 className="text-4xl font-bold text-purple-800 mb-6">
+//         🤝 Alumni–Student Connect Forum
+//       </h1>
+
+//       {!isVerified && (
+//         <p className="text-red-600 mb-6">
+//           🔒 Verify your account to post or reply.
+//         </p>
+//       )}
+
+//       {posts.map((post) => (
+//         <div key={post.id} className="bg-white p-6 rounded-xl mb-4 shadow">
+//           <h2 className="font-bold text-xl">{post.title}</h2>
+//           <p className="mt-2">{post.content}</p>
+
+//           {post.forum_replies?.map((r) => (
+//             <div key={r.id} className="ml-4 mt-2 text-sm text-gray-700">
+//               💬 {r.content}
+//             </div>
+//           ))}
+
+//           {canReply && (
+//             <button className="text-purple-600 mt-2">
+//               Reply
+//             </button>
+//           )}
+//         </div>
+//       ))}
+
+//       {isAlumni && (
+//         <div className="mt-10 bg-white p-6 rounded-xl shadow">
+//           <h2 className="font-bold text-xl mb-3">Post Opportunity</h2>
+//           <button className="bg-purple-600 text-white px-4 py-2 rounded">
+//             Alumni Mentor Panel
+//           </button>
+//         </div>
+//       )}
+//     </section>
+//   );
+// };
+
+// export default ConnectForum;
+
+
+
+
+
+
+
+
+
+
+// --------------------- first version offline ----------------------------
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { supabase } from "../supabaseClient";
 
 const ConnectForum = () => {
-  const [userRole, setUserRole] = useState("guest"); // student | alumni | faculty | guest
+  const [userRole, setUserRole] = useState("guest");
   const [isVerified, setIsVerified] = useState(false);
-  const [posts, setPosts] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
+  const [user, setUser] = useState(null);
+  const bottomRef = useRef(null);
 
-  /* 🔐 Identify user from Supabase */
+  /* 🔐 Identify logged-in user */
   useEffect(() => {
     const init = async () => {
       const {
@@ -958,24 +1101,25 @@ const ConnectForum = () => {
       } = await supabase.auth.getSession();
 
       if (!session) return;
+      setUser(session.user);
 
       const uid = session.user.id;
 
       const { data: student } = await supabase
         .from("students")
-        .select("is_verified")
+        .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
 
       const { data: alumni } = await supabase
         .from("alumni")
-        .select("is_verified")
+        .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
 
       const { data: faculty } = await supabase
         .from("faculty")
-        .select("is_verified")
+        .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
 
@@ -994,66 +1138,116 @@ const ConnectForum = () => {
     init();
   }, []);
 
-  /* 🧠 Load forum posts */
+  /* 📥 Load messages */
   useEffect(() => {
-    const load = async () => {
+    const loadMessages = async () => {
       const { data } = await supabase
-        .from("forum_posts")
-        .select("*, forum_replies(*)")
-        .order("created_at", { ascending: false });
+        .from("discussion_messages")
+        .select("*")
+        .order("created_at", { ascending: true });
 
-      setPosts(data || []);
+      setMessages(data || []);
     };
 
-    load();
+    loadMessages();
+
+    /* ⚡ Real-time subscription */
+    const channel = supabase
+      .channel("discussion-chat")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "discussion_messages" },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
-  const canReply = isVerified;
-  const isAlumni = userRole === "alumni";
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  /* ✉️ Send message */
+  const sendMessage = async () => {
+    if (!text.trim() || !isVerified) return;
+
+    await supabase.from("discussion_messages").insert({
+      user_id: user.id,
+      name: user.email,
+      role: userRole,
+      message: text,
+    });
+
+    setText("");
+  };
 
   return (
-    <section className="min-h-screen bg-purple-50 p-10">
+    <section className="min-h-screen bg-purple-50 flex flex-col">
       <Helmet>
-        <title>Connect Forum</title>
+        <title>Discussion Forum</title>
       </Helmet>
 
-      <h1 className="text-4xl font-bold text-purple-800 mb-6">
-        🤝 Alumni–Student Connect Forum
-      </h1>
+      {/* Header */}
+      <div className="bg-purple-700 text-white p-4 text-xl font-bold">
+        💬 Alumni Connect – Discussion Forum
+      </div>
 
       {!isVerified && (
-        <p className="text-red-600 mb-6">
-          🔒 Verify your account to post or reply.
+        <p className="text-red-600 text-center mt-4">
+          🔒 Verify your account to participate in discussion.
         </p>
       )}
 
-      {posts.map((post) => (
-        <div key={post.id} className="bg-white p-6 rounded-xl mb-4 shadow">
-          <h2 className="font-bold text-xl">{post.title}</h2>
-          <p className="mt-2">{post.content}</p>
-
-          {post.forum_replies?.map((r) => (
-            <div key={r.id} className="ml-4 mt-2 text-sm text-gray-700">
-              💬 {r.content}
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`max-w-xl ${
+              msg.user_id === user?.id ? "ml-auto text-right" : ""
+            }`}
+          >
+            <div className="text-xs text-gray-500 mb-1">
+              {msg.name} ·{" "}
+              <span className="capitalize font-semibold text-purple-600">
+                {msg.role}
+              </span>
             </div>
-          ))}
+            <div className="bg-white p-3 rounded-xl shadow inline-block">
+              {msg.message}
+            </div>
+          </div>
+        ))}
+        <div ref={bottomRef} />
+      </div>
 
-          {canReply && (
-            <button className="text-purple-600 mt-2">
-              Reply
-            </button>
-          )}
-        </div>
-      ))}
-
-      {isAlumni && (
-        <div className="mt-10 bg-white p-6 rounded-xl shadow">
-          <h2 className="font-bold text-xl mb-3">Post Opportunity</h2>
-          <button className="bg-purple-600 text-white px-4 py-2 rounded">
-            Alumni Mentor Panel
-          </button>
-        </div>
-      )}
+      {/* Input Box */}
+      <div className="bg-white p-4 flex gap-3 border-t">
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={
+            isVerified
+              ? "Ask a question or reply..."
+              : "Verification required"
+          }
+          disabled={!isVerified}
+          className="flex-1 border rounded px-4 py-2"
+        />
+        <button
+          onClick={sendMessage}
+          disabled={!isVerified}
+          className="bg-purple-600 text-white px-6 py-2 rounded disabled:opacity-50"
+        >
+          Send
+        </button>
+      </div>
     </section>
   );
 };
