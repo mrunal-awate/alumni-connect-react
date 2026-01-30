@@ -4,7 +4,8 @@ import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 
 const Mentorship = () => {
-  const [userRole, setUserRole] = useState("guest");
+//   const [userRole, setUserRole] = useState("guest");
+  const [ , setUserRole] = useState("guest");
   const [isVerified, setIsVerified] = useState(false);
   const [mentors, setMentors] = useState([]);
   const [user, setUser] = useState(null);
