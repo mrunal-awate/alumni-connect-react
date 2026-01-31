@@ -248,7 +248,6 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { supabase } from "../supabaseClient";
@@ -332,85 +331,78 @@ const Mentorship = () => {
       }
     };
 
+    const fetchMentors = async () => {
+      try {
+        const { data: alumniData } = await supabase
+          .from("alumni")
+          .select("*")
+          .eq("is_verified", true);
+
+        const { data: facultyData } = await supabase
+          .from("faculty")
+          .select("*")
+          .eq("is_verified", true);
+
+        const { data: mentorshipData } = await supabase
+          .from("mentorship")
+          .select("*");
+
+        const alumniMentors = (alumniData || []).map((a) => ({
+          id: "alumni_" + a.id,
+          source: "alumni",
+          name: a.name || "Unknown",
+          batch_year: a.batch_year || a.graduation_year || null,
+          job_title: a.job_title || a.designation || null,
+          company: a.company || a.current_company || null,
+          experience: a.experience || a.years_of_experience || null,
+          expertise: a.expertise || a.area_of_expertise || null,
+          bio: a.bio || a.about || a.description || null,
+          tags: a.tags || a.skills || null,
+          availability: a.availability || "Available",
+          avatar_color: getAvatarColor("alumni", a.name),
+        }));
+
+        const facultyMentors = (facultyData || []).map((f) => ({
+          id: "faculty_" + f.id,
+          source: "faculty",
+          name: f.name || "Unknown",
+          batch_year: f.joining_year || f.batch_year || null,
+          job_title: f.designation || f.job_title || f.position || null,
+          company: f.department || f.company || "Sinhgad Institute",
+          experience: f.experience || f.years_of_experience || null,
+          expertise: f.expertise || f.area_of_expertise || f.specialization || null,
+          bio: f.bio || f.about || f.description || null,
+          tags: f.tags || f.skills || null,
+          availability: f.availability || "Available",
+          avatar_color: getAvatarColor("faculty", f.name),
+        }));
+
+        const mentorshipMentors = (mentorshipData || []).map((m) => ({
+          id: "mentor_" + m.id,
+          source: "admin",
+          name: m.name || "Unknown",
+          batch_year: m.batch_year || null,
+          job_title: m.job_title || m.expertise || null,
+          company: m.company || null,
+          experience: m.experience || null,
+          expertise: m.expertise || null,
+          bio: m.bio || m.description || null,
+          tags: m.tags || null,
+          availability: m.availability || (m.is_available ? "Available" : "Busy"),
+          avatar_color: getAvatarColor("admin", m.name),
+        }));
+
+        const allMentors = [...alumniMentors, ...facultyMentors, ...mentorshipMentors];
+        setMentors(allMentors);
+        setFilteredMentors(allMentors);
+      } catch (err) {
+        console.error("Error loading mentors:", err);
+      }
+    };
+
     init();
-    loadMentors();
+    fetchMentors();
   }, []);
-
-  /* 📥 Load mentors from alumni + faculty + mentorship (admin) tables */
-  const loadMentors = async () => {
-    try {
-      // Fetch verified alumni
-      const { data: alumniData } = await supabase
-        .from("alumni")
-        .select("*")
-        .eq("is_verified", true);
-
-      // Fetch verified faculty
-      const { data: facultyData } = await supabase
-        .from("faculty")
-        .select("*")
-        .eq("is_verified", true);
-
-      // Fetch from mentorship table (admin or self-registered mentors)
-      const { data: mentorshipData } = await supabase
-        .from("mentorship")
-        .select("*");
-
-      // Normalize alumni into mentor format
-      const alumniMentors = (alumniData || []).map((a) => ({
-        id: "alumni_" + a.id,
-        source: "alumni",
-        name: a.name || "Unknown",
-        batch_year: a.batch_year || a.graduation_year || null,
-        job_title: a.job_title || a.designation || null,
-        company: a.company || a.current_company || null,
-        experience: a.experience || a.years_of_experience || null,
-        expertise: a.expertise || a.area_of_expertise || null,
-        bio: a.bio || a.about || a.description || null,
-        tags: a.tags || a.skills || null,
-        availability: a.availability || "Available",
-        avatar_color: getAvatarColor("alumni", a.name),
-      }));
-
-      // Normalize faculty into mentor format
-      const facultyMentors = (facultyData || []).map((f) => ({
-        id: "faculty_" + f.id,
-        source: "faculty",
-        name: f.name || "Unknown",
-        batch_year: f.joining_year || f.batch_year || null,
-        job_title: f.designation || f.job_title || f.position || null,
-        company: f.department || f.company || "Sinhgad Institute",
-        experience: f.experience || f.years_of_experience || null,
-        expertise: f.expertise || f.area_of_expertise || f.specialization || null,
-        bio: f.bio || f.about || f.description || null,
-        tags: f.tags || f.skills || null,
-        availability: f.availability || "Available",
-        avatar_color: getAvatarColor("faculty", f.name),
-      }));
-
-      // Mentorship table entries (admin / self-registered)
-      const mentorshipMentors = (mentorshipData || []).map((m) => ({
-        id: "mentor_" + m.id,
-        source: "admin",
-        name: m.name || "Unknown",
-        batch_year: m.batch_year || null,
-        job_title: m.job_title || m.expertise || null,
-        company: m.company || null,
-        experience: m.experience || null,
-        expertise: m.expertise || null,
-        bio: m.bio || m.description || null,
-        tags: m.tags || null,
-        availability: m.availability || (m.is_available ? "Available" : "Busy"),
-        avatar_color: getAvatarColor("admin", m.name),
-      }));
-
-      const allMentors = [...alumniMentors, ...facultyMentors, ...mentorshipMentors];
-      setMentors(allMentors);
-      setFilteredMentors(allMentors);
-    } catch (err) {
-      console.error("Error loading mentors:", err);
-    }
-  };
 
   /* 🎨 Avatar color based on role */
   const getAvatarColor = (role, name) => {
@@ -511,7 +503,7 @@ const Mentorship = () => {
         batch_year: "",
         availability: "Available",
       });
-      loadMentors();
+      window.location.reload();
     } catch (err) {
       console.error("Error:", err);
       alert("Something went wrong. Please try again.");
