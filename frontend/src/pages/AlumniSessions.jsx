@@ -898,20 +898,17 @@ import {
   MessageSquare,
   Share2,
   Search,
-  Filter,
   Video,
   Send,
   Bookmark,
   Eye,
   Radio,
   ChevronRight,
-  Building2,
   Sparkles
 } from "lucide-react";
 
 const AlumniSessions = () => {
   const [sessions, setSessions] = useState([]);
-  const [speakers, setSpeakers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSession, setSelectedSession] = useState(null);
   const [showSessionModal, setShowSessionModal] = useState(false);
