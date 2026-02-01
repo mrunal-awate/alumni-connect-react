@@ -258,220 +258,55 @@
 
 //  ---------------1st version online -----------------
 
-// import React, { useEffect, useState } from 'react';
-// import axios from 'axios';
-// import { useAuth } from '../context/AuthContext';
-
-// const News = () => {
-//   const { isAuthenticated } = useAuth();
-//   const [jobs, setJobs] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState('');
-
-//   useEffect(() => {
-//     const fetchJobs = async () => {
-//       setLoading(true);
-//       try {
-//         const options = {
-//           method: 'GET',
-//           url: 'https://jsearch.p.rapidapi.com/search',
-//           // url: 'https://gnews.io/api/v4/top-headlines?category=' + category + '&lang=en&country=us&max=10&apikey=' + apikey;',     //Testing purpose
-//           params: {
-//             query: 'internship OR fresher jobs',
-//             page: '1',
-//             num_pages: '1',
-//           },
-//           headers: {
-//             // 'X-RapidAPI-Key': 'ec18f5d303msh80d3aa10778cbb0p18a129jsn642fec00ac67', // 🚫 Replace with env var in production
-//             // 'X-RapidAPI-Key': '1DL4pRCKKmg238fsCU6i7ZYEStP9fL9o4q', // Testing Purpose
-//             'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
-//             // 'X-RapidAPI-Host': 'gnews.io',                   //Testing Purpose
-//           },
-//         };
-
-//         const res = await axios.request(options);
-//         setJobs(res.data.data || []);
-//       } catch (err) {
-//         console.error('Failed to fetch job news:', err);
-//         if (err.response?.status === 429) {
-//           setError('⚠️ API limit exceeded. Please try again later.');
-//         } else {
-//           setError('❌ Failed to fetch job news.');
-//         }
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchJobs();
-//   }, []);
-
-//   const visibleJobs = isAuthenticated ? jobs : jobs.slice(0, 3);
-
-//   return (
-//     <section style={styles.section}>
-//       <div style={styles.container}>
-//         <h2 style={styles.heading}>💼 Latest Job & Internship Listings</h2>
-
-//         {loading ? (
-//           <p style={styles.status}>🔄 Loading job news...</p>
-//         ) : error ? (
-//           <p style={styles.error}>{error}</p>
-//         ) : (
-//           <ul style={styles.list}>
-//             {visibleJobs.length > 0 ? (
-//               visibleJobs.map((job, idx) => (
-//                 <li key={idx} style={styles.listItem}>
-//                   <a
-//                     href={job.job_google_link}
-//                     target="_blank"
-//                     rel="noopener noreferrer"
-//                     style={styles.link}
-//                   >
-//                     🔗 {job.job_title} at {job.employer_name}
-//                   </a>
-//                 </li>
-//               ))
-//             ) : (
-//               <li style={styles.listItem}>🚫 No job listings found.</li>
-//             )}
-//           </ul>
-//         )}
-
-//         {!isAuthenticated && !loading && !error && (
-//           <div style={styles.lockedBox}>
-//             🔒 <strong>Login to see more job opportunities.</strong>
-//           </div>
-//         )}
-//       </div>
-//     </section>
-//   );
-// };
-
-// const styles = {
-//   section: {
-//     minHeight: '100vh',
-//     background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)',
-//     display: 'flex',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     padding: '40px 20px',
-//   },
-//   container: {
-//     textAlign: 'center',
-//     maxWidth: '700px',
-//   },
-//   heading: {
-//     fontSize: '2rem',
-//     color: '#ad1457',
-//     marginBottom: '25px',
-//   },
-//   status: {
-//     fontSize: '1.1rem',
-//     color: '#777',
-//     marginBottom: '20px',
-//   },
-//   error: {
-//     fontSize: '1.1rem',
-//     color: 'red',
-//     marginBottom: '20px',
-//     fontWeight: 'bold',
-//   },
-//   list: {
-//     listStyle: 'none',
-//     padding: 0,
-//   },
-//   listItem: {
-//     fontSize: '1.1rem',
-//     color: '#333',
-//     marginBottom: '15px',
-//     lineHeight: '1.6',
-//     background: '#ffffffdd',
-//     padding: '12px 20px',
-//     borderRadius: '10px',
-//     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-//   },
-//   link: {
-//     textDecoration: 'none',
-//     color: '#0077cc',
-//     fontWeight: 'bold',
-//   },
-//   lockedBox: {
-//     marginTop: '25px',
-//     backgroundColor: '#fff0f5',
-//     padding: '16px 24px',
-//     border: '1px dashed #ad1457',
-//     borderRadius: '10px',
-//     fontSize: '1rem',
-//     color: '#880e4f',
-//   },
-// };
-
-// export default News;
-
-
-
-
-
-
-
-
-// ---------------------------------------2nd version online-------------------------------------------------------
-
-
-
-
-
-
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { supabase } from "../supabaseClient";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const News = () => {
+  const { isAuthenticated } = useAuth();
   const [jobs, setJobs] = useState([]);
-  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const init = async () => {
-      // 🔐 Get Supabase session
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      setSession(session);
-
-      // 🔎 Fetch jobs (public API)
+    const fetchJobs = async () => {
+      setLoading(true);
       try {
         const options = {
-          method: "GET",
-          url: "https://jsearch.p.rapidapi.com/search",
+          method: 'GET',
+          url: 'https://jsearch.p.rapidapi.com/search',
+          // url: 'https://gnews.io/api/v4/top-headlines?category=' + category + '&lang=en&country=us&max=10&apikey=' + apikey;',     //Testing purpose
           params: {
-            query: "internship OR fresher jobs",
-            page: "1",
-            num_pages: "1",
+            query: 'internship OR fresher jobs',
+            page: '1',
+            num_pages: '1',
           },
           headers: {
-            "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
+            // 'X-RapidAPI-Key': 'ec18f5d303msh80d3aa10778cbb0p18a129jsn642fec00ac67', // 🚫 Replace with env var in production
+            // 'X-RapidAPI-Key': '1DL4pRCKKmg238fsCU6i7ZYEStP9fL9o4q', // Testing Purpose
+            'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
+            // 'X-RapidAPI-Host': 'gnews.io',                   //Testing Purpose
           },
         };
 
         const res = await axios.request(options);
         setJobs(res.data.data || []);
       } catch (err) {
-        console.error("Job fetch failed:", err);
-        setError("Failed to load job listings");
+        console.error('Failed to fetch job news:', err);
+        if (err.response?.status === 429) {
+          setError('⚠️ API limit exceeded. Please try again later.');
+        } else {
+          setError('❌ Failed to fetch job news.');
+        }
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
-    init();
+    fetchJobs();
   }, []);
 
-  // 🔐 Supabase-based lock
-  const visibleJobs = session ? jobs : jobs.slice(0, 3);
+  const visibleJobs = isAuthenticated ? jobs : jobs.slice(0, 3);
 
   return (
     <section style={styles.section}>
@@ -503,9 +338,9 @@ const News = () => {
           </ul>
         )}
 
-        {!session && !loading && !error && (
+        {!isAuthenticated && !loading && !error && (
           <div style={styles.lockedBox}>
-            🔒 <strong>Login to see full alumni job board</strong>
+            🔒 <strong>Login to see more job opportunities.</strong>
           </div>
         )}
       </div>
@@ -515,64 +350,229 @@ const News = () => {
 
 const styles = {
   section: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #fce4ec, #f8bbd0)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: "40px 20px",
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '40px 20px',
   },
   container: {
-    textAlign: "center",
-    maxWidth: "700px",
+    textAlign: 'center',
+    maxWidth: '700px',
   },
   heading: {
-    fontSize: "2rem",
-    color: "#ad1457",
-    marginBottom: "25px",
+    fontSize: '2rem',
+    color: '#ad1457',
+    marginBottom: '25px',
   },
   status: {
-    fontSize: "1.1rem",
-    color: "#777",
-    marginBottom: "20px",
+    fontSize: '1.1rem',
+    color: '#777',
+    marginBottom: '20px',
   },
   error: {
-    fontSize: "1.1rem",
-    color: "red",
-    marginBottom: "20px",
-    fontWeight: "bold",
+    fontSize: '1.1rem',
+    color: 'red',
+    marginBottom: '20px',
+    fontWeight: 'bold',
   },
   list: {
-    listStyle: "none",
+    listStyle: 'none',
     padding: 0,
   },
   listItem: {
-    fontSize: "1.1rem",
-    color: "#333",
-    marginBottom: "15px",
-    lineHeight: "1.6",
-    background: "#ffffffdd",
-    padding: "12px 20px",
-    borderRadius: "10px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    fontSize: '1.1rem',
+    color: '#333',
+    marginBottom: '15px',
+    lineHeight: '1.6',
+    background: '#ffffffdd',
+    padding: '12px 20px',
+    borderRadius: '10px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
   },
   link: {
-    textDecoration: "none",
-    color: "#0077cc",
-    fontWeight: "bold",
+    textDecoration: 'none',
+    color: '#0077cc',
+    fontWeight: 'bold',
   },
   lockedBox: {
-    marginTop: "25px",
-    backgroundColor: "#fff0f5",
-    padding: "16px 24px",
-    border: "1px dashed #ad1457",
-    borderRadius: "10px",
-    fontSize: "1rem",
-    color: "#880e4f",
+    marginTop: '25px',
+    backgroundColor: '#fff0f5',
+    padding: '16px 24px',
+    border: '1px dashed #ad1457',
+    borderRadius: '10px',
+    fontSize: '1rem',
+    color: '#880e4f',
   },
 };
 
 export default News;
+
+
+
+
+
+
+
+
+// ---------------------------------------2nd version online-------------------------------------------------------
+
+
+
+
+
+
+// import React, { useEffect, useState } from "react";
+// import axios from "axios";
+// import { supabase } from "../supabaseClient";
+
+// const News = () => {
+//   const [jobs, setJobs] = useState([]);
+//   const [session, setSession] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState("");
+
+//   useEffect(() => {
+//     const init = async () => {
+//       // 🔐 Get Supabase session
+//       const {
+//         data: { session },
+//       } = await supabase.auth.getSession();
+
+//       setSession(session);
+
+//       // 🔎 Fetch jobs (public API)
+//       try {
+//         const options = {
+//           method: "GET",
+//           url: "https://jsearch.p.rapidapi.com/search",
+//           params: {
+//             query: "internship OR fresher jobs",
+//             page: "1",
+//             num_pages: "1",
+//           },
+//           headers: {
+//             "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
+//           },
+//         };
+
+//         const res = await axios.request(options);
+//         setJobs(res.data.data || []);
+//       } catch (err) {
+//         console.error("Job fetch failed:", err);
+//         setError("Failed to load job listings");
+//       }
+
+//       setLoading(false);
+//     };
+
+//     init();
+//   }, []);
+
+//   // 🔐 Supabase-based lock
+//   const visibleJobs = session ? jobs : jobs.slice(0, 3);
+
+//   return (
+//     <section style={styles.section}>
+//       <div style={styles.container}>
+//         <h2 style={styles.heading}>💼 Latest Job & Internship Listings</h2>
+
+//         {loading ? (
+//           <p style={styles.status}>🔄 Loading job news...</p>
+//         ) : error ? (
+//           <p style={styles.error}>{error}</p>
+//         ) : (
+//           <ul style={styles.list}>
+//             {visibleJobs.length > 0 ? (
+//               visibleJobs.map((job, idx) => (
+//                 <li key={idx} style={styles.listItem}>
+//                   <a
+//                     href={job.job_google_link}
+//                     target="_blank"
+//                     rel="noopener noreferrer"
+//                     style={styles.link}
+//                   >
+//                     🔗 {job.job_title} at {job.employer_name}
+//                   </a>
+//                 </li>
+//               ))
+//             ) : (
+//               <li style={styles.listItem}>🚫 No job listings found.</li>
+//             )}
+//           </ul>
+//         )}
+
+//         {!session && !loading && !error && (
+//           <div style={styles.lockedBox}>
+//             🔒 <strong>Login to see full alumni job board</strong>
+//           </div>
+//         )}
+//       </div>
+//     </section>
+//   );
+// };
+
+// const styles = {
+//   section: {
+//     minHeight: "100vh",
+//     background: "linear-gradient(135deg, #fce4ec, #f8bbd0)",
+//     display: "flex",
+//     justifyContent: "center",
+//     alignItems: "center",
+//     padding: "40px 20px",
+//   },
+//   container: {
+//     textAlign: "center",
+//     maxWidth: "700px",
+//   },
+//   heading: {
+//     fontSize: "2rem",
+//     color: "#ad1457",
+//     marginBottom: "25px",
+//   },
+//   status: {
+//     fontSize: "1.1rem",
+//     color: "#777",
+//     marginBottom: "20px",
+//   },
+//   error: {
+//     fontSize: "1.1rem",
+//     color: "red",
+//     marginBottom: "20px",
+//     fontWeight: "bold",
+//   },
+//   list: {
+//     listStyle: "none",
+//     padding: 0,
+//   },
+//   listItem: {
+//     fontSize: "1.1rem",
+//     color: "#333",
+//     marginBottom: "15px",
+//     lineHeight: "1.6",
+//     background: "#ffffffdd",
+//     padding: "12px 20px",
+//     borderRadius: "10px",
+//     boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+//   },
+//   link: {
+//     textDecoration: "none",
+//     color: "#0077cc",
+//     fontWeight: "bold",
+//   },
+//   lockedBox: {
+//     marginTop: "25px",
+//     backgroundColor: "#fff0f5",
+//     padding: "16px 24px",
+//     border: "1px dashed #ad1457",
+//     borderRadius: "10px",
+//     fontSize: "1rem",
+//     color: "#880e4f",
+//   },
+// };
+
+// export default News;
 
 
 
