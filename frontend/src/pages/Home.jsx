@@ -310,7 +310,7 @@ const Home = () => {
   return (
     <>
       <Navbar />
-      <HeroSection />
+      {/* <HeroSection /> */}
       <MemberSection />
       <Events />
       <News />
