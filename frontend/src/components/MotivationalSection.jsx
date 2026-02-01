@@ -300,7 +300,8 @@ const MotivationalSection = () => {
         <div className="quote-wrapper">
           {/* Section Title */}
           <div className="section-header">
-            <h2 className="section-title">Daily Inspiration</h2>
+            {/* <h2 className="section-title">Daily Inspiration</h2> */}
+            <h2 className="section-title">Connect & Conquer</h2>
             <div className="title-underline"></div>
           </div>
 
