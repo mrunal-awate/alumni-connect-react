@@ -269,9 +269,9 @@ const Navbar = () => {
                 <Link to="/members" style={styles.dropdownLink}>
                   Alumni List
                 </Link>
-                <Link to="/search" style={styles.dropdownLink}>
+                {/* <Link to="/search" style={styles.dropdownLink}>
                   Search
-                </Link>
+                </Link> */}
               </div>
             )}
           </li>
