@@ -42,7 +42,7 @@ const MotivationalSection = () => {
             <div style={styles.videoWrapper}>
               <iframe
                 style={styles.iframe}
-                src="https://www.youtube.com/embed/ZXsQAXx_ao0"
+                src="https://youtu.be/Hgg7M3kSqyE?si=Wfjk3edPdWWxrDVU"
                 title="Motivational Video"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
