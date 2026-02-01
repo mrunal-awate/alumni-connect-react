@@ -347,12 +347,12 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
 import MotivationalSection from '../components/MotivationalSection';
-import NewsFeed from '../components/NewsFeed';
+// import NewsFeed from '../components/NewsFeed';
 import WhyJoinSection from '../components/WhyJoinSection';
 // import MemberSection from '../components/MemberSection';
 import About from '../components/About';
 import Events from '../components/Events';
-// import News from '../components/News';
+import News from '../components/News';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 
@@ -392,7 +392,7 @@ const Home = () => {
     <>
       <Navbar />
       <MotivationalSection />
-      <NewsFeed />
+      <News />
       <WhyJoinSection />
       <Events />
       <Footer />
