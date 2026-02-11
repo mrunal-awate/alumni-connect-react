@@ -532,7 +532,826 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ---------------------------------------------------------------3rd version online -------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useMemo, useEffect } from "react";
+// import { motion, AnimatePresence } from "framer-motion";
+// import { Helmet } from "react-helmet";
+// import { supabase } from "../supabaseClient";
+
+// /* ---------- KEEP YOUR FULL eventsData ARRAY HERE ---------- */
+// const eventsData = [
+//   /* paste your full events array here exactly as before */
+// ];
+
+// const Events = () => {
+//   const [activeTab, setActiveTab] = useState("upcoming");
+//   const [isVerified, setIsVerified] = useState(false);
+//   const [checkingAuth, setCheckingAuth] = useState(true);
+
+//   // 🔐 Supabase verification
+//   useEffect(() => {
+//     const init = async () => {
+//       const {
+//         data: { session },
+//       } = await supabase.auth.getSession();
+
+//       if (session) {
+//         const uid = session.user.id;
+
+//         const { data: student } = await supabase
+//           .from("students")
+//           .select("is_verified")
+//           .eq("id", uid)
+//           .single();
+
+//         const { data: alumni } = await supabase
+//           .from("alumni")
+//           .select("is_verified")
+//           .eq("id", uid)
+//           .single();
+
+//         const { data: faculty } = await supabase
+//           .from("faculty")
+//           .select("is_verified")
+//           .eq("id", uid)
+//           .single();
+
+//         if (
+//           student?.is_verified ||
+//           alumni?.is_verified ||
+//           faculty?.is_verified
+//         ) {
+//           setIsVerified(true);
+//         }
+//       }
+
+//       setCheckingAuth(false);
+//     };
+
+//     init();
+//   }, []);
+
+//   // ✅ FIXED: stable "now" reference
+//   const now = useMemo(() => new Date(), []);
+
+//   const upcomingEvents = useMemo(() => {
+//     return eventsData.filter((e) => new Date(e.date) >= now);
+//   }, [now]);
+
+//   const pastEvents = useMemo(() => {
+//     return eventsData.filter((e) => new Date(e.date) < now);
+//   }, [now]);
+
+//   const eventsToDisplay =
+//     activeTab === "upcoming" ? upcomingEvents : pastEvents;
+
+//   const formatDate = (d) =>
+//     new Date(d).toLocaleDateString("en-IN", {
+//       year: "numeric",
+//       month: "long",
+//       day: "numeric",
+//     });
+
+//   const formatTime = (d) =>
+//     new Date(d).toLocaleTimeString("en-IN", {
+//       hour: "2-digit",
+//       minute: "2-digit",
+//     });
+
+//   // 🔐 AFTER all hooks → safe to return conditionally
+//   if (checkingAuth) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center text-blue-700 text-xl">
+//         Loading events...
+//       </div>
+//     );
+//   }
+
+//   if (!isVerified) {
+//     return (
+//       <section className="min-h-screen flex items-center justify-center bg-blue-50">
+//         <div className="bg-white p-10 rounded-xl shadow-lg text-center">
+//           <h2 className="text-2xl font-bold text-blue-700 mb-4">
+//             🔒 Events Locked
+//           </h2>
+//           <p className="text-gray-600">
+//             Only verified alumni, students, and faculty can access events.
+//           </p>
+//         </div>
+//       </section>
+//     );
+//   }
+
+//   // 🔓 Verified users reach here
+//   return (
+//     <section className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 md:px-8">
+//       <Helmet>
+//         <title>SITS Alumni Events</title>
+//       </Helmet>
+
+//       <h1 className="text-4xl font-bold text-blue-800 text-center mb-10">
+//         🗓️ Alumni & Student Events
+//       </h1>
+
+//       <div className="flex justify-center gap-4 mb-10">
+//         <button
+//           onClick={() => setActiveTab("upcoming")}
+//           className={`px-6 py-2 rounded ${
+//             activeTab === "upcoming"
+//               ? "bg-blue-600 text-white"
+//               : "bg-white"
+//           }`}
+//         >
+//           Upcoming
+//         </button>
+
+//         <button
+//           onClick={() => setActiveTab("past")}
+//           className={`px-6 py-2 rounded ${
+//             activeTab === "past" ? "bg-blue-600 text-white" : "bg-white"
+//           }`}
+//         >
+//           Past
+//         </button>
+//       </div>
+
+//       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+//         <AnimatePresence>
+//           {eventsToDisplay.map((event) => (
+//             <motion.div
+//               key={event.id}
+//               className="bg-white rounded-xl shadow p-4"
+//               initial={{ opacity: 0, y: 20 }}
+//               animate={{ opacity: 1, y: 0 }}
+//               exit={{ opacity: 0, y: -20 }}
+//             >
+//               <h3 className="font-bold text-lg">{event.title}</h3>
+//               <p className="text-sm">
+//                 {formatDate(event.date)} {formatTime(event.date)}
+//               </p>
+//               <p className="text-sm">{event.location}</p>
+//               <p className="mt-2">{event.description}</p>
+//               <a
+//                 href={event.actionLink}
+//                 className="text-blue-600 mt-2 inline-block"
+//               >
+//                 {event.actionText}
+//               </a>
+//             </motion.div>
+//           ))}
+//         </AnimatePresence>
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Events;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ----------------------------------------------------------------4th version online -------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useMemo, useEffect } from "react";
+// import { motion, AnimatePresence } from "framer-motion";
+// import { Helmet } from "react-helmet";
+// import { supabase } from "../supabaseClient";
+// import { Calendar, MapPin, Clock, Users, Plus, X } from "lucide-react";
+
+// const Events = () => {
+//   const [activeTab, setActiveTab] = useState("upcoming");
+//   const [isVerified, setIsVerified] = useState(false);
+//   const [userRole, setUserRole] = useState("guest");
+//   const [user, setUser] = useState(null);
+//   const [userName, setUserName] = useState("");
+//   const [checkingAuth, setCheckingAuth] = useState(true);
+  
+//   // Events state
+//   const [events, setEvents] = useState([]);
+//   const [loadingEvents, setLoadingEvents] = useState(true);
+  
+//   // Modal states
+//   const [showCreateModal, setShowCreateModal] = useState(false);
+//   const [createForm, setCreateForm] = useState({
+//     title: "",
+//     description: "",
+//     date: "",
+//     time: "",
+//     location: "",
+//     category: "Workshop",
+//     max_participants: "",
+//   });
+
+//   // 🔐 Supabase verification
+//   useEffect(() => {
+//     const init = async () => {
+//       const {
+//         data: { session },
+//       } = await supabase.auth.getSession();
+
+//       if (session) {
+//         setUser(session.user);
+//         const uid = session.user.id;
+
+//         const { data: student } = await supabase
+//           .from("students")
+//           .select("is_verified, name")
+//           .eq("id", uid)
+//           .maybeSingle();
+
+//         const { data: alumni } = await supabase
+//           .from("alumni")
+//           .select("verified, name")
+//           .eq("id", uid)
+//           .maybeSingle();
+
+//         const { data: faculty } = await supabase
+//           .from("faculty")
+//           .select("is_verified, name")
+//           .eq("id", uid)
+//           .maybeSingle();
+
+//         if (student?.is_verified) {
+//           setUserRole("student");
+//           setIsVerified(true);
+//           setUserName(student.name || session.user.email);
+//         } else if (alumni?.verified) {
+//           setUserRole("alumni");
+//           setIsVerified(true);
+//           setUserName(alumni.name || session.user.email);
+//         } else if (faculty?.is_verified) {
+//           setUserRole("faculty");
+//           setIsVerified(true);
+//           setUserName(faculty.name || session.user.email);
+//         }
+//       }
+
+//       setCheckingAuth(false);
+//     };
+
+//     init();
+//     loadEvents();
+//   }, []);
+
+//   // Load events from database
+//   const loadEvents = async () => {
+//     try {
+//       const { data, error } = await supabase
+//         .from("events")
+//         .select("*")
+//         .order("date", { ascending: true });
+
+//       if (error) throw error;
+//       setEvents(data || []);
+//     } catch (err) {
+//       console.error("Error loading events:", err);
+//     } finally {
+//       setLoadingEvents(false);
+//     }
+//   };
+
+//   // Create new event
+//   const handleCreateEvent = async () => {
+//     if (!createForm.title.trim() || !createForm.date || !createForm.time) {
+//       alert("Please fill in all required fields");
+//       return;
+//     }
+
+//     try {
+//       const eventDateTime = new Date(`${createForm.date}T${createForm.time}`);
+      
+//       const { error } = await supabase.from("events").insert({
+//         title: createForm.title,
+//         description: createForm.description,
+//         date: eventDateTime.toISOString(),
+//         location: createForm.location,
+//         category: createForm.category,
+//         max_participants: parseInt(createForm.max_participants) || null,
+//         created_by: user.id,
+//         creator_name: userName,
+//         creator_role: userRole,
+//       });
+
+//       if (error) throw error;
+
+//       alert("✅ Event created successfully!");
+//       setShowCreateModal(false);
+//       setCreateForm({
+//         title: "",
+//         description: "",
+//         date: "",
+//         time: "",
+//         location: "",
+//         category: "Workshop",
+//         max_participants: "",
+//       });
+//       loadEvents();
+//     } catch (err) {
+//       console.error("Error creating event:", err);
+//       alert("Failed to create event. Please try again.");
+//     }
+//   };
+
+//   // RSVP to event
+//   const handleRSVP = async (eventId) => {
+//     if (!isVerified) {
+//       alert("Please verify your account to RSVP");
+//       return;
+//     }
+
+//     try {
+//       const { error } = await supabase.from("event_participants").insert({
+//         event_id: eventId,
+//         user_id: user.id,
+//         user_name: userName,
+//         user_role: userRole,
+//         status: "registered",
+//       });
+
+//       if (error) {
+//         if (error.code === "23505") {
+//           alert("You've already registered for this event!");
+//         } else {
+//           throw error;
+//         }
+//         return;
+//       }
+
+//       alert("✅ Successfully registered for the event!");
+//       loadEvents();
+//     } catch (err) {
+//       console.error("Error RSVPing:", err);
+//       alert("Failed to register. Please try again.");
+//     }
+//   };
+
+//   const now = useMemo(() => new Date(), []);
+
+//   const upcomingEvents = useMemo(() => {
+//     return events.filter((e) => new Date(e.date) >= now);
+//   }, [events, now]);
+
+//   const pastEvents = useMemo(() => {
+//     return events.filter((e) => new Date(e.date) < now);
+//   }, [events, now]);
+
+//   const eventsToDisplay = activeTab === "upcoming" ? upcomingEvents : pastEvents;
+
+//   const formatDate = (d) =>
+//     new Date(d).toLocaleDateString("en-US", {
+//       year: "numeric",
+//       month: "short",
+//       day: "numeric",
+//     });
+
+//   const formatTime = (d) =>
+//     new Date(d).toLocaleTimeString("en-US", {
+//       hour: "2-digit",
+//       minute: "2-digit",
+//     });
+
+//   const getCategoryColor = (category) => {
+//     const colors = {
+//       Workshop: "bg-slate-100 text-slate-700",
+//       Seminar: "bg-blue-50 text-blue-700",
+//       Networking: "bg-emerald-50 text-emerald-700",
+//       Conference: "bg-violet-50 text-violet-700",
+//       Social: "bg-amber-50 text-amber-700",
+//     };
+//     return colors[category] || "bg-gray-100 text-gray-700";
+//   };
+
+//   // Loading state
+//   if (checkingAuth || loadingEvents) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center bg-gray-50">
+//         <div className="text-slate-600 text-lg">Loading events...</div>
+//       </div>
+//     );
+//   }
+
+//   // Not verified
+//   if (!isVerified) {
+//     return (
+//       <section className="min-h-screen flex items-center justify-center bg-gray-50">
+//         <div className="bg-white p-10 rounded-2xl shadow-lg text-center border border-gray-100">
+//           <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+//             <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+//             </svg>
+//           </div>
+//           <h2 className="text-2xl font-bold text-slate-800 mb-2">Events Locked</h2>
+//           <p className="text-slate-500">
+//             Only verified alumni, students, and faculty can access events.
+//           </p>
+//         </div>
+//       </section>
+//     );
+//   }
+
+//   // Main events page
+//   return (
+//     <section className="min-h-screen bg-gray-50 py-8 px-4">
+//       <Helmet>
+//         <title>Events - Alumni Connect</title>
+//       </Helmet>
+
+//       {/* Header */}
+//       <div className="max-w-7xl mx-auto mb-8">
+//         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+//           <div>
+//             <h1 className="text-3xl font-bold text-slate-800 mb-1 flex items-center gap-2">
+//               <Calendar className="w-8 h-8 text-slate-600" />
+//               Alumni & Student Events
+//             </h1>
+//             <p className="text-slate-500">Connect, learn, and grow together</p>
+//           </div>
+
+//           {/* Post Event Button - Only for alumni, faculty, admin */}
+//           {(userRole === "alumni" || userRole === "faculty") && (
+//             <button
+//               onClick={() => setShowCreateModal(true)}
+//               className="flex items-center gap-2 bg-slate-800 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-slate-700 transition-all shadow-sm"
+//             >
+//               <Plus className="w-5 h-5" />
+//               Post Event
+//             </button>
+//           )}
+//         </div>
+//       </div>
+
+//       {/* Tabs */}
+//       <div className="max-w-7xl mx-auto mb-8">
+//         <div className="inline-flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+//           <button
+//             onClick={() => setActiveTab("upcoming")}
+//             className={`px-6 py-2 rounded-md font-medium transition-all ${
+//               activeTab === "upcoming"
+//                 ? "bg-slate-800 text-white shadow-sm"
+//                 : "text-slate-600 hover:text-slate-800"
+//             }`}
+//           >
+//             Upcoming ({upcomingEvents.length})
+//           </button>
+//           <button
+//             onClick={() => setActiveTab("past")}
+//             className={`px-6 py-2 rounded-md font-medium transition-all ${
+//               activeTab === "past"
+//                 ? "bg-slate-800 text-white shadow-sm"
+//                 : "text-slate-600 hover:text-slate-800"
+//             }`}
+//           >
+//             Past ({pastEvents.length})
+//           </button>
+//         </div>
+//       </div>
+
+//       {/* Events Grid */}
+//       <div className="max-w-7xl mx-auto">
+//         {eventsToDisplay.length === 0 ? (
+//           <div className="text-center py-20">
+//             <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+//               <Calendar className="w-10 h-10 text-slate-400" />
+//             </div>
+//             <p className="text-slate-500 text-lg">
+//               No {activeTab} events at the moment
+//             </p>
+//           </div>
+//         ) : (
+//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+//             <AnimatePresence>
+//               {eventsToDisplay.map((event) => (
+//                 <motion.div
+//                   key={event.id}
+//                   initial={{ opacity: 0, y: 20 }}
+//                   animate={{ opacity: 1, y: 0 }}
+//                   exit={{ opacity: 0, y: -20 }}
+//                   className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col"
+//                 >
+//                   {/* Category Badge */}
+//                   <div className="p-4 pb-3">
+//                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(event.category)}`}>
+//                       {event.category}
+//                     </span>
+//                   </div>
+
+//                   {/* Event Details */}
+//                   <div className="px-4 pb-4 flex-grow">
+//                     <h3 className="font-bold text-lg text-slate-800 mb-3 line-clamp-2">
+//                       {event.title}
+//                     </h3>
+
+//                     {/* Date & Time */}
+//                     <div className="flex items-start gap-2 mb-2 text-sm text-slate-600">
+//                       <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" />
+//                       <span>{formatDate(event.date)}</span>
+//                     </div>
+
+//                     <div className="flex items-start gap-2 mb-2 text-sm text-slate-600">
+//                       <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
+//                       <span>{formatTime(event.date)}</span>
+//                     </div>
+
+//                     {/* Location */}
+//                     {event.location && (
+//                       <div className="flex items-start gap-2 mb-3 text-sm text-slate-600">
+//                         <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+//                         <span className="line-clamp-1">{event.location}</span>
+//                       </div>
+//                     )}
+
+//                     {/* Description */}
+//                     {event.description && (
+//                       <p className="text-sm text-slate-500 line-clamp-3 mb-3">
+//                         {event.description}
+//                       </p>
+//                     )}
+
+//                     {/* Participants */}
+//                     {event.max_participants && (
+//                       <div className="flex items-center gap-2 text-sm text-slate-600 mb-3">
+//                         <Users className="w-4 h-4" />
+//                         <span>Max: {event.max_participants} participants</span>
+//                       </div>
+//                     )}
+//                   </div>
+
+//                   {/* Footer - RSVP Button */}
+//                   <div className="px-4 pb-4 mt-auto">
+//                     <button
+//                       onClick={() => handleRSVP(event.id)}
+//                       className="w-full bg-slate-800 text-white py-2.5 rounded-lg font-medium hover:bg-slate-700 transition-all"
+//                     >
+//                       Register / RSVP
+//                     </button>
+//                   </div>
+
+//                   {/* Posted by */}
+//                   {event.creator_name && (
+//                     <div className="px-4 pb-3 border-t border-gray-100 pt-3">
+//                       <p className="text-xs text-slate-400">
+//                         Posted by{" "}
+//                         <span className="font-semibold text-slate-600">
+//                           {event.creator_name}
+//                         </span>
+//                         {event.creator_role && (
+//                           <span className="capitalize"> ({event.creator_role})</span>
+//                         )}
+//                       </p>
+//                     </div>
+//                   )}
+//                 </motion.div>
+//               ))}
+//             </AnimatePresence>
+//           </div>
+//         )}
+//       </div>
+
+//       {/* Create Event Modal */}
+//       {showCreateModal && (
+//         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
+//           <motion.div
+//             initial={{ opacity: 0, scale: 0.95 }}
+//             animate={{ opacity: 1, scale: 1 }}
+//             className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+//           >
+//             {/* Modal Header */}
+//             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center rounded-t-2xl">
+//               <h3 className="text-xl font-bold text-slate-800">Create New Event</h3>
+//               <button
+//                 onClick={() => setShowCreateModal(false)}
+//                 className="text-slate-400 hover:text-slate-600 transition-colors"
+//               >
+//                 <X className="w-6 h-6" />
+//               </button>
+//             </div>
+
+//             {/* Modal Body */}
+//             <div className="p-6 space-y-4">
+//               {/* Title */}
+//               <div>
+//                 <label className="block text-sm font-semibold text-slate-700 mb-1">
+//                   Event Title *
+//                 </label>
+//                 <input
+//                   type="text"
+//                   value={createForm.title}
+//                   onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+//                   placeholder="e.g., Tech Workshop: Introduction to AI"
+//                   className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+//                 />
+//               </div>
+
+//               {/* Description */}
+//               <div>
+//                 <label className="block text-sm font-semibold text-slate-700 mb-1">
+//                   Description
+//                 </label>
+//                 <textarea
+//                   value={createForm.description}
+//                   onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+//                   placeholder="Tell attendees what to expect..."
+//                   className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm h-24 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent resize-none"
+//                 />
+//               </div>
+
+//               {/* Date & Time */}
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div>
+//                   <label className="block text-sm font-semibold text-slate-700 mb-1">
+//                     Date *
+//                   </label>
+//                   <input
+//                     type="date"
+//                     value={createForm.date}
+//                     onChange={(e) => setCreateForm({ ...createForm, date: e.target.value })}
+//                     className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+//                   />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-semibold text-slate-700 mb-1">
+//                     Time *
+//                   </label>
+//                   <input
+//                     type="time"
+//                     value={createForm.time}
+//                     onChange={(e) => setCreateForm({ ...createForm, time: e.target.value })}
+//                     className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+//                   />
+//                 </div>
+//               </div>
+
+//               {/* Location */}
+//               <div>
+//                 <label className="block text-sm font-semibold text-slate-700 mb-1">
+//                   Location
+//                 </label>
+//                 <input
+//                   type="text"
+//                   value={createForm.location}
+//                   onChange={(e) => setCreateForm({ ...createForm, location: e.target.value })}
+//                   placeholder="e.g., Auditorium A, Online (Zoom Link)"
+//                   className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+//                 />
+//               </div>
+
+//               {/* Category & Max Participants */}
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div>
+//                   <label className="block text-sm font-semibold text-slate-700 mb-1">
+//                     Category
+//                   </label>
+//                   <select
+//                     value={createForm.category}
+//                     onChange={(e) => setCreateForm({ ...createForm, category: e.target.value })}
+//                     className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent bg-white"
+//                   >
+//                     <option value="Workshop">Workshop</option>
+//                     <option value="Seminar">Seminar</option>
+//                     <option value="Networking">Networking</option>
+//                     <option value="Conference">Conference</option>
+//                     <option value="Social">Social</option>
+//                   </select>
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-semibold text-slate-700 mb-1">
+//                     Max Participants
+//                   </label>
+//                   <input
+//                     type="number"
+//                     value={createForm.max_participants}
+//                     onChange={(e) => setCreateForm({ ...createForm, max_participants: e.target.value })}
+//                     placeholder="Optional"
+//                     className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+//                   />
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Modal Footer */}
+//             <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex gap-3 rounded-b-2xl">
+//               <button
+//                 onClick={() => setShowCreateModal(false)}
+//                 className="flex-1 border border-gray-200 text-slate-600 py-2.5 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+//               >
+//                 Cancel
+//               </button>
+//               <button
+//                 onClick={handleCreateEvent}
+//                 className="flex-1 bg-slate-800 text-white py-2.5 rounded-lg font-semibold hover:bg-slate-700 transition-all"
+//               >
+//                 Create Event
+//               </button>
+//             </div>
+//           </motion.div>
+//         </div>
+//       )}
+//     </section>
+//   );
+// };
+
+// export default Events;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// --------------------------------------------------------------- Previous version -------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -541,16 +1360,31 @@ import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet";
 import { supabase } from "../supabaseClient";
-
-/* ---------- KEEP YOUR FULL eventsData ARRAY HERE ---------- */
-const eventsData = [
-  /* paste your full events array here exactly as before */
-];
+import { Calendar, MapPin, Clock, Users, Plus, X } from "lucide-react";
 
 const Events = () => {
   const [activeTab, setActiveTab] = useState("upcoming");
   const [isVerified, setIsVerified] = useState(false);
+  const [userRole, setUserRole] = useState("guest");
+  const [user, setUser] = useState(null);
+  const [userName, setUserName] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
+  
+  // Events state
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  
+  // Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    title: "",
+    description: "",
+    date: "",
+    time: "",
+    location: "",
+    category: "Workshop",
+    max_participants: "",
+  });
 
   // 🔐 Supabase verification
   useEffect(() => {
@@ -560,32 +1394,39 @@ const Events = () => {
       } = await supabase.auth.getSession();
 
       if (session) {
+        setUser(session.user);
         const uid = session.user.id;
 
         const { data: student } = await supabase
           .from("students")
-          .select("is_verified")
+          .select("is_verified, name")
           .eq("id", uid)
-          .single();
+          .maybeSingle();
 
         const { data: alumni } = await supabase
           .from("alumni")
-          .select("is_verified")
+          .select("verified, name")
           .eq("id", uid)
-          .single();
+          .maybeSingle();
 
         const { data: faculty } = await supabase
           .from("faculty")
-          .select("is_verified")
+          .select("is_verified, name")
           .eq("id", uid)
-          .single();
+          .maybeSingle();
 
-        if (
-          student?.is_verified ||
-          alumni?.is_verified ||
-          faculty?.is_verified
-        ) {
+        if (student?.is_verified === true || student?.is_verified === "true") {
+          setUserRole("student");
           setIsVerified(true);
+          setUserName(student.name || session.user.email);
+        } else if (alumni?.verified === true || alumni?.verified === "true" || String(alumni?.verified).trim().toLowerCase() === "true") {
+          setUserRole("alumni");
+          setIsVerified(true);
+          setUserName(alumni.name || session.user.email);
+        } else if (faculty?.is_verified === true || faculty?.is_verified === "true") {
+          setUserRole("faculty");
+          setIsVerified(true);
+          setUserName(faculty.name || session.user.email);
         }
       }
 
@@ -593,52 +1434,158 @@ const Events = () => {
     };
 
     init();
+    loadEvents();
   }, []);
 
-  // ✅ FIXED: stable "now" reference
+  // Load events from database
+  const loadEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("date", { ascending: true });
+
+      if (error) throw error;
+      setEvents(data || []);
+    } catch (err) {
+      console.error("Error loading events:", err);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
+  // Create new event
+  const handleCreateEvent = async () => {
+    if (!createForm.title.trim() || !createForm.date || !createForm.time) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      const eventDateTime = new Date(`${createForm.date}T${createForm.time}`);
+      
+      const { error } = await supabase.from("events").insert({
+        title: createForm.title,
+        description: createForm.description,
+        date: eventDateTime.toISOString(),
+        location: createForm.location,
+        category: createForm.category,
+        max_participants: parseInt(createForm.max_participants) || null,
+        created_by: user.id,
+        creator_name: userName,
+        creator_role: userRole,
+      });
+
+      if (error) throw error;
+
+      alert("✅ Event created successfully!");
+      setShowCreateModal(false);
+      setCreateForm({
+        title: "",
+        description: "",
+        date: "",
+        time: "",
+        location: "",
+        category: "Workshop",
+        max_participants: "",
+      });
+      loadEvents();
+    } catch (err) {
+      console.error("Error creating event:", err);
+      alert("Failed to create event. Please try again.");
+    }
+  };
+
+  // RSVP to event
+  const handleRSVP = async (eventId) => {
+    if (!isVerified) {
+      alert("Please verify your account to RSVP");
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("event_participants").insert({
+        event_id: eventId,
+        user_id: user.id,
+        user_name: userName,
+        user_role: userRole,
+        status: "registered",
+      });
+
+      if (error) {
+        if (error.code === "23505") {
+          alert("You've already registered for this event!");
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      alert("✅ Successfully registered for the event!");
+      loadEvents();
+    } catch (err) {
+      console.error("Error RSVPing:", err);
+      alert("Failed to register. Please try again.");
+    }
+  };
+
   const now = useMemo(() => new Date(), []);
 
   const upcomingEvents = useMemo(() => {
-    return eventsData.filter((e) => new Date(e.date) >= now);
-  }, [now]);
+    return events.filter((e) => new Date(e.date) >= now);
+  }, [events, now]);
 
   const pastEvents = useMemo(() => {
-    return eventsData.filter((e) => new Date(e.date) < now);
-  }, [now]);
+    return events.filter((e) => new Date(e.date) < now);
+  }, [events, now]);
 
-  const eventsToDisplay =
-    activeTab === "upcoming" ? upcomingEvents : pastEvents;
+  const eventsToDisplay = activeTab === "upcoming" ? upcomingEvents : pastEvents;
 
   const formatDate = (d) =>
-    new Date(d).toLocaleDateString("en-IN", {
+    new Date(d).toLocaleDateString("en-US", {
       year: "numeric",
-      month: "long",
+      month: "short",
       day: "numeric",
     });
 
   const formatTime = (d) =>
-    new Date(d).toLocaleTimeString("en-IN", {
+    new Date(d).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
 
-  // 🔐 AFTER all hooks → safe to return conditionally
-  if (checkingAuth) {
+  const getCategoryColor = (category) => {
+    const colors = {
+      Workshop: "bg-slate-100 text-slate-700",
+      Seminar: "bg-blue-50 text-blue-700",
+      Networking: "bg-emerald-50 text-emerald-700",
+      Conference: "bg-violet-50 text-violet-700",
+      Social: "bg-amber-50 text-amber-700",
+    };
+    return colors[category] || "bg-gray-100 text-gray-700";
+  };
+
+  // Loading state
+  if (checkingAuth || loadingEvents) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-blue-700 text-xl">
-        Loading events...
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-slate-600 text-lg">Loading events...</div>
       </div>
     );
   }
 
+  // Not verified
   if (!isVerified) {
     return (
-      <section className="min-h-screen flex items-center justify-center bg-blue-50">
-        <div className="bg-white p-10 rounded-xl shadow-lg text-center">
-          <h2 className="text-2xl font-bold text-blue-700 mb-4">
-            🔒 Events Locked
-          </h2>
-          <p className="text-gray-600">
+      <section className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-10 rounded-2xl shadow-lg text-center border border-gray-100">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Events Locked</h2>
+          <p className="text-slate-500">
             Only verified alumni, students, and faculty can access events.
           </p>
         </div>
@@ -646,65 +1593,303 @@ const Events = () => {
     );
   }
 
-  // 🔓 Verified users reach here
+  // Main events page
   return (
-    <section className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 md:px-8">
+    <section className="min-h-screen bg-gray-50 py-8 px-4">
       <Helmet>
-        <title>SITS Alumni Events</title>
+        <title>Events - Alumni Connect</title>
       </Helmet>
 
-      <h1 className="text-4xl font-bold text-blue-800 text-center mb-10">
-        🗓️ Alumni & Student Events
-      </h1>
+      {/* Header */}
+      <div className="max-w-7xl mx-auto mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800 mb-1 flex items-center gap-2">
+              <Calendar className="w-8 h-8 text-slate-600" />
+              Alumni & Student Events
+            </h1>
+            <p className="text-slate-500">Connect, learn, and grow together</p>
+          </div>
 
-      <div className="flex justify-center gap-4 mb-10">
-        <button
-          onClick={() => setActiveTab("upcoming")}
-          className={`px-6 py-2 rounded ${
-            activeTab === "upcoming"
-              ? "bg-blue-600 text-white"
-              : "bg-white"
-          }`}
-        >
-          Upcoming
-        </button>
-
-        <button
-          onClick={() => setActiveTab("past")}
-          className={`px-6 py-2 rounded ${
-            activeTab === "past" ? "bg-blue-600 text-white" : "bg-white"
-          }`}
-        >
-          Past
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <AnimatePresence>
-          {eventsToDisplay.map((event) => (
-            <motion.div
-              key={event.id}
-              className="bg-white rounded-xl shadow p-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+          {/* Post Event Button - Only for alumni, faculty, admin */}
+          {(userRole === "alumni" || userRole === "faculty") && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 bg-slate-800 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-slate-700 transition-all shadow-sm"
             >
-              <h3 className="font-bold text-lg">{event.title}</h3>
-              <p className="text-sm">
-                {formatDate(event.date)} {formatTime(event.date)}
-              </p>
-              <p className="text-sm">{event.location}</p>
-              <p className="mt-2">{event.description}</p>
-              <a
-                href={event.actionLink}
-                className="text-blue-600 mt-2 inline-block"
-              >
-                {event.actionText}
-              </a>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+              <Plus className="w-5 h-5" />
+              Post Event
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Tabs */}
+      <div className="max-w-7xl mx-auto mb-8">
+        <div className="inline-flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+          <button
+            onClick={() => setActiveTab("upcoming")}
+            className={`px-6 py-2 rounded-md font-medium transition-all ${
+              activeTab === "upcoming"
+                ? "bg-slate-800 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-800"
+            }`}
+          >
+            Upcoming ({upcomingEvents.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("past")}
+            className={`px-6 py-2 rounded-md font-medium transition-all ${
+              activeTab === "past"
+                ? "bg-slate-800 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-800"
+            }`}
+          >
+            Past ({pastEvents.length})
+          </button>
+        </div>
+      </div>
+
+      {/* Events Grid */}
+      <div className="max-w-7xl mx-auto">
+        {eventsToDisplay.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-10 h-10 text-slate-400" />
+            </div>
+            <p className="text-slate-500 text-lg">
+              No {activeTab} events at the moment
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {eventsToDisplay.map((event) => (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col"
+                >
+                  {/* Category Badge */}
+                  <div className="p-4 pb-3">
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(event.category)}`}>
+                      {event.category}
+                    </span>
+                  </div>
+
+                  {/* Event Details */}
+                  <div className="px-4 pb-4 flex-grow">
+                    <h3 className="font-bold text-lg text-slate-800 mb-3 line-clamp-2">
+                      {event.title}
+                    </h3>
+
+                    {/* Date & Time */}
+                    <div className="flex items-start gap-2 mb-2 text-sm text-slate-600">
+                      <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <span>{formatDate(event.date)}</span>
+                    </div>
+
+                    <div className="flex items-start gap-2 mb-2 text-sm text-slate-600">
+                      <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <span>{formatTime(event.date)}</span>
+                    </div>
+
+                    {/* Location */}
+                    {event.location && (
+                      <div className="flex items-start gap-2 mb-3 text-sm text-slate-600">
+                        <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <span className="line-clamp-1">{event.location}</span>
+                      </div>
+                    )}
+
+                    {/* Description */}
+                    {event.description && (
+                      <p className="text-sm text-slate-500 line-clamp-3 mb-3">
+                        {event.description}
+                      </p>
+                    )}
+
+                    {/* Participants */}
+                    {event.max_participants && (
+                      <div className="flex items-center gap-2 text-sm text-slate-600 mb-3">
+                        <Users className="w-4 h-4" />
+                        <span>Max: {event.max_participants} participants</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer - RSVP Button */}
+                  <div className="px-4 pb-4 mt-auto">
+                    <button
+                      onClick={() => handleRSVP(event.id)}
+                      className="w-full bg-slate-800 text-white py-2.5 rounded-lg font-medium hover:bg-slate-700 transition-all"
+                    >
+                      Register / RSVP
+                    </button>
+                  </div>
+
+                  {/* Posted by */}
+                  {event.creator_name && (
+                    <div className="px-4 pb-3 border-t border-gray-100 pt-3">
+                      <p className="text-xs text-slate-400">
+                        Posted by{" "}
+                        <span className="font-semibold text-slate-600">
+                          {event.creator_name}
+                        </span>
+                        {event.creator_role && (
+                          <span className="capitalize"> ({event.creator_role})</span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      {/* Create Event Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center rounded-t-2xl">
+              <h3 className="text-xl font-bold text-slate-800">Create New Event</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Event Title *
+                </label>
+                <input
+                  type="text"
+                  value={createForm.title}
+                  onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+                  placeholder="e.g., Tech Workshop: Introduction to AI"
+                  className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={createForm.description}
+                  onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+                  placeholder="Tell attendees what to expect..."
+                  className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm h-24 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent resize-none"
+                />
+              </div>
+
+              {/* Date & Time */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">
+                    Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={createForm.date}
+                    onChange={(e) => setCreateForm({ ...createForm, date: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">
+                    Time *
+                  </label>
+                  <input
+                    type="time"
+                    value={createForm.time}
+                    onChange={(e) => setCreateForm({ ...createForm, time: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={createForm.location}
+                  onChange={(e) => setCreateForm({ ...createForm, location: e.target.value })}
+                  placeholder="e.g., Auditorium A, Online (Zoom Link)"
+                  className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                />
+              </div>
+
+              {/* Category & Max Participants */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={createForm.category}
+                    onChange={(e) => setCreateForm({ ...createForm, category: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent bg-white"
+                  >
+                    <option value="Workshop">Workshop</option>
+                    <option value="Seminar">Seminar</option>
+                    <option value="Networking">Networking</option>
+                    <option value="Conference">Conference</option>
+                    <option value="Social">Social</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">
+                    Max Participants
+                  </label>
+                  <input
+                    type="number"
+                    value={createForm.max_participants}
+                    onChange={(e) => setCreateForm({ ...createForm, max_participants: e.target.value })}
+                    placeholder="Optional"
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex gap-3 rounded-b-2xl">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="flex-1 border border-gray-200 text-slate-600 py-2.5 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateEvent}
+                className="flex-1 bg-slate-800 text-white py-2.5 rounded-lg font-semibold hover:bg-slate-700 transition-all"
+              >
+                Create Event
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </section>
   );
 };

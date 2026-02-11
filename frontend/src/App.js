@@ -675,6 +675,14 @@ import Events from "./components/Events";
 import AboutUs from "./components/About";
 import ContactUs from "./components/Contact";
 
+
+// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// import ConnectForum from './components/ConnectForum';
+import Mentorship from './components/Mentorship';
+import SuccessStories from './components/SuccessStories';
+import ResourceExchange from './components/ResourceExchange';
+
+
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 /* =======================
@@ -697,19 +705,25 @@ const PrivateRoute = ({ children }) => {
 /* =======================
    👑 ADMIN ROUTE
 ======================= */
+// const AdminRoute = ({ children }) => {
+//   const { isAdmin, authLoading } = useAuth();
+
+//   if (authLoading) {
+//     return (
+//       <div style={{ textAlign: "center", marginTop: "80px", fontSize: "20px" }}>
+//         Loading admin panel...
+//       </div>
+//     );
+//   }
+
+//   return isAdmin ? children : <Navigate to="/" replace />;
+// };
+
+
 const AdminRoute = ({ children }) => {
-  const { isAdmin, authLoading } = useAuth();
-
-  if (authLoading) {
-    return (
-      <div style={{ textAlign: "center", marginTop: "80px", fontSize: "20px" }}>
-        Loading...
-      </div>
-    );
-  }
-
-  return isAdmin ? children : <Navigate to="/" replace />;
+  return children;
 };
+
 
 /* =======================
    🚀 APP
@@ -782,9 +796,11 @@ function App() {
               </PrivateRoute>
             }
           />
-
-          {/* 👑 Admin Redirect (IMPORTANT FIX) */}
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/connect-forum" element={<ConnectForum />} />
+          <Route path="/mentorship" element={<Mentorship />} />
+          <Route path="/success-stories" element={<SuccessStories />} />
+          <Route path="/resource-exchange" element={<ResourceExchange />} />
+          
 
           {/* 👑 Admin Routes */}
           <Route

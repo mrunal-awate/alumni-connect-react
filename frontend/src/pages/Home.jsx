@@ -278,10 +278,78 @@
 
 
 
+// import React from 'react';
+// import Navbar from '../components/Navbar';
+// import HeroSection from '../components/HeroSection';
+// import MemberSection from '../components/MemberSection';
+// import About from '../components/About';
+// import Events from '../components/Events';
+// import News from '../components/News';
+// import Footer from '../components/Footer';
+// import { useAuth } from '../context/AuthContext';
+
+// const Home = () => {
+//   const { token, authLoading } = useAuth();
+
+//   // ⏳ Wait until auth state is ready
+//   if (authLoading) return null;
+
+//   // 🔓 PUBLIC HOME (Before Login)
+//   if (!token) {
+//     return (
+//       <>
+//         <Navbar />
+//         <HeroSection />
+//         <About />
+//         <Footer />
+//       </>
+//     );
+//   }
+
+//   // 🔐 AUTHENTICATED HOME (After Login)
+//   return (
+//     <>
+//       <Navbar />
+//       <HeroSection />
+//       <MemberSection />
+//       <Events />
+//       <News />
+//       <Footer />
+//     </>
+//   );
+// };
+
+// export default Home;
+
+
+
+
+
+
+
+
+
+// ------------------------------ upper code is main this is testing version -----------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React from 'react';
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
-import MemberSection from '../components/MemberSection';
+import MotivationalSection from '../components/MotivationalSection';
+// import NewsFeed from '../components/NewsFeed';
+import WhyJoinSection from '../components/WhyJoinSection';
+// import MemberSection from '../components/MemberSection';
 import About from '../components/About';
 import Events from '../components/Events';
 import News from '../components/News';
@@ -289,13 +357,26 @@ import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
-  const { token, authLoading } = useAuth();
+  const { isAuthenticated, authLoading } = useAuth();
 
   // ⏳ Wait until auth state is ready
-  if (authLoading) return null;
+  if (authLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        fontSize: '20px',
+        color: '#0d47a1'
+      }}>
+        Loading...
+      </div>
+    );
+  }
 
   // 🔓 PUBLIC HOME (Before Login)
-  if (!token) {
+  if (!isAuthenticated) {
     return (
       <>
         <Navbar />
@@ -310,10 +391,10 @@ const Home = () => {
   return (
     <>
       <Navbar />
-      <HeroSection />
-      <MemberSection />
-      <Events />
+      <MotivationalSection />
       <News />
+      <WhyJoinSection />
+      <Events />
       <Footer />
     </>
   );

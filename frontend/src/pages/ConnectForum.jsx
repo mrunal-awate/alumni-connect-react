@@ -941,16 +941,359 @@
 
 
 
-import React, { useState, useEffect } from "react";
+// import React, { useState, useEffect } from "react";
+// import { Helmet } from "react-helmet";
+// import { supabase } from "../supabaseClient";
+
+// const ConnectForum = () => {
+//   const [userRole, setUserRole] = useState("guest"); // student | alumni | faculty | guest
+//   const [isVerified, setIsVerified] = useState(false);
+//   const [posts, setPosts] = useState([]);
+
+//   /* 🔐 Identify user from Supabase */
+//   useEffect(() => {
+//     const init = async () => {
+//       const {
+//         data: { session },
+//       } = await supabase.auth.getSession();
+
+//       if (!session) return;
+
+//       const uid = session.user.id;
+
+//       const { data: student } = await supabase
+//         .from("students")
+//         .select("is_verified")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       const { data: alumni } = await supabase
+//         .from("alumni")
+//         .select("is_verified")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       const { data: faculty } = await supabase
+//         .from("faculty")
+//         .select("is_verified")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       if (student?.is_verified) {
+//         setUserRole("student");
+//         setIsVerified(true);
+//       } else if (alumni?.is_verified) {
+//         setUserRole("alumni");
+//         setIsVerified(true);
+//       } else if (faculty?.is_verified) {
+//         setUserRole("faculty");
+//         setIsVerified(true);
+//       }
+//     };
+
+//     init();
+//   }, []);
+
+//   /* 🧠 Load forum posts */
+//   useEffect(() => {
+//     const load = async () => {
+//       const { data } = await supabase
+//         .from("forum_posts")
+//         .select("*, forum_replies(*)")
+//         .order("created_at", { ascending: false });
+
+//       setPosts(data || []);
+//     };
+
+//     load();
+//   }, []);
+
+//   const canReply = isVerified;
+//   const isAlumni = userRole === "alumni";
+
+//   return (
+//     <section className="min-h-screen bg-purple-50 p-10">
+//       <Helmet>
+//         <title>Connect Forum</title>
+//       </Helmet>
+
+//       <h1 className="text-4xl font-bold text-purple-800 mb-6">
+//         🤝 Alumni–Student Connect Forum
+//       </h1>
+
+//       {!isVerified && (
+//         <p className="text-red-600 mb-6">
+//           🔒 Verify your account to post or reply.
+//         </p>
+//       )}
+
+//       {posts.map((post) => (
+//         <div key={post.id} className="bg-white p-6 rounded-xl mb-4 shadow">
+//           <h2 className="font-bold text-xl">{post.title}</h2>
+//           <p className="mt-2">{post.content}</p>
+
+//           {post.forum_replies?.map((r) => (
+//             <div key={r.id} className="ml-4 mt-2 text-sm text-gray-700">
+//               💬 {r.content}
+//             </div>
+//           ))}
+
+//           {canReply && (
+//             <button className="text-purple-600 mt-2">
+//               Reply
+//             </button>
+//           )}
+//         </div>
+//       ))}
+
+//       {isAlumni && (
+//         <div className="mt-10 bg-white p-6 rounded-xl shadow">
+//           <h2 className="font-bold text-xl mb-3">Post Opportunity</h2>
+//           <button className="bg-purple-600 text-white px-4 py-2 rounded">
+//             Alumni Mentor Panel
+//           </button>
+//         </div>
+//       )}
+//     </section>
+//   );
+// };
+
+// export default ConnectForum;
+
+
+
+
+
+
+
+
+
+
+// --------------------- first version offline ----------------------------
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect, useState, useRef } from "react";
+// import { Helmet } from "react-helmet";
+// import { supabase } from "../supabaseClient";
+
+// const ConnectForum = () => {
+//   const [userRole, setUserRole] = useState("guest");
+//   const [isVerified, setIsVerified] = useState(false);
+//   const [messages, setMessages] = useState([]);
+//   const [text, setText] = useState("");
+//   const [user, setUser] = useState(null);
+//   const bottomRef = useRef(null);
+
+//   /* 🔐 Identify logged-in user */
+//   useEffect(() => {
+//     const init = async () => {
+//       const {
+//         data: { session },
+//       } = await supabase.auth.getSession();
+
+//       if (!session) return;
+//       setUser(session.user);
+
+//       const uid = session.user.id;
+
+//       const { data: student } = await supabase
+//         .from("students")
+//         .select("is_verified, name")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       const { data: alumni } = await supabase
+//         .from("alumni")
+//         .select("is_verified, name")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       const { data: faculty } = await supabase
+//         .from("faculty")
+//         .select("is_verified, name")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       if (student?.is_verified) {
+//         setUserRole("student");
+//         setIsVerified(true);
+//       } else if (alumni?.is_verified) {
+//         setUserRole("alumni");
+//         setIsVerified(true);
+//       } else if (faculty?.is_verified) {
+//         setUserRole("faculty");
+//         setIsVerified(true);
+//       }
+//     };
+
+//     init();
+//   }, []);
+
+//   /* 📥 Load messages */
+//   useEffect(() => {
+//     const loadMessages = async () => {
+//       const { data } = await supabase
+//         .from("discussion_messages")
+//         .select("*")
+//         .order("created_at", { ascending: true });
+
+//       setMessages(data || []);
+//     };
+
+//     loadMessages();
+
+//     /* ⚡ Real-time subscription */
+//     const channel = supabase
+//       .channel("discussion-chat")
+//       .on(
+//         "postgres_changes",
+//         { event: "INSERT", schema: "public", table: "discussion_messages" },
+//         (payload) => {
+//           setMessages((prev) => [...prev, payload.new]);
+//         }
+//       )
+//       .subscribe();
+
+//     return () => {
+//       supabase.removeChannel(channel);
+//     };
+//   }, []);
+
+//   useEffect(() => {
+//     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+//   }, [messages]);
+
+//   /* ✉️ Send message */
+//   const sendMessage = async () => {
+//     if (!text.trim() || !isVerified) return;
+
+//     await supabase.from("discussion_messages").insert({
+//       user_id: user.id,
+//       name: user.email,
+//       role: userRole,
+//       message: text,
+//     });
+
+//     setText("");
+//   };
+
+//   return (
+//     <section className="min-h-screen bg-purple-50 flex flex-col">
+//       <Helmet>
+//         <title>Discussion Forum</title>
+//       </Helmet>
+
+//       {/* Header */}
+//       <div className="bg-purple-700 text-white p-4 text-xl font-bold">
+//         💬 Alumni Connect – Discussion Forum
+//       </div>
+
+//       {!isVerified && (
+//         <p className="text-red-600 text-center mt-4">
+//           🔒 Verify your account to participate in discussion.
+//         </p>
+//       )}
+
+//       {/* Chat Messages */}
+//       <div className="flex-1 overflow-y-auto p-6 space-y-4">
+//         {messages.map((msg) => (
+//           <div
+//             key={msg.id}
+//             className={`max-w-xl ${
+//               msg.user_id === user?.id ? "ml-auto text-right" : ""
+//             }`}
+//           >
+//             <div className="text-xs text-gray-500 mb-1">
+//               {msg.name} ·{" "}
+//               <span className="capitalize font-semibold text-purple-600">
+//                 {msg.role}
+//               </span>
+//             </div>
+//             <div className="bg-white p-3 rounded-xl shadow inline-block">
+//               {msg.message}
+//             </div>
+//           </div>
+//         ))}
+//         <div ref={bottomRef} />
+//       </div>
+
+//       {/* Input Box */}
+//       <div className="bg-white p-4 flex gap-3 border-t">
+//         <input
+//           type="text"
+//           value={text}
+//           onChange={(e) => setText(e.target.value)}
+//           placeholder={
+//             isVerified
+//               ? "Ask a question or reply..."
+//               : "Verification required"
+//           }
+//           disabled={!isVerified}
+//           className="flex-1 border rounded px-4 py-2"
+//         />
+//         <button
+//           onClick={sendMessage}
+//           disabled={!isVerified}
+//           className="bg-purple-600 text-white px-6 py-2 rounded disabled:opacity-50"
+//         >
+//           Send
+//         </button>
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default ConnectForum;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ----------------- first version online ----------------------------
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { supabase } from "../supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 const ConnectForum = () => {
-  const [userRole, setUserRole] = useState("guest"); // student | alumni | faculty | guest
+  const [userRole, setUserRole] = useState("guest");
   const [isVerified, setIsVerified] = useState(false);
-  const [posts, setPosts] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
+  const [user, setUser] = useState(null);
+  const [userName, setUserName] = useState("");
+  const bottomRef = useRef(null);
+  const navigate = useNavigate();
 
-  /* 🔐 Identify user from Supabase */
+  /* 🔐 Identify logged-in user */
   useEffect(() => {
     const init = async () => {
       const {
@@ -958,102 +1301,319 @@ const ConnectForum = () => {
       } = await supabase.auth.getSession();
 
       if (!session) return;
+      setUser(session.user);
 
       const uid = session.user.id;
 
       const { data: student } = await supabase
         .from("students")
-        .select("is_verified")
+        .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
 
       const { data: alumni } = await supabase
         .from("alumni")
-        .select("is_verified")
+        .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
 
       const { data: faculty } = await supabase
         .from("faculty")
-        .select("is_verified")
+        .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
 
       if (student?.is_verified) {
         setUserRole("student");
         setIsVerified(true);
+        setUserName(student.name || session.user.email);
       } else if (alumni?.is_verified) {
         setUserRole("alumni");
         setIsVerified(true);
+        setUserName(alumni.name || session.user.email);
       } else if (faculty?.is_verified) {
         setUserRole("faculty");
         setIsVerified(true);
+        setUserName(faculty.name || session.user.email);
       }
     };
 
     init();
   }, []);
 
-  /* 🧠 Load forum posts */
+  /* 📥 Load messages */
   useEffect(() => {
-    const load = async () => {
+    const loadMessages = async () => {
       const { data } = await supabase
-        .from("forum_posts")
-        .select("*, forum_replies(*)")
-        .order("created_at", { ascending: false });
+        .from("discussion_messages")
+        .select("*")
+        .order("created_at", { ascending: true });
 
-      setPosts(data || []);
+      setMessages(data || []);
     };
 
-    load();
+    loadMessages();
+
+    /* ⚡ Real-time subscription */
+    const channel = supabase
+      .channel("discussion-chat")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "discussion_messages" },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
-  const canReply = isVerified;
-  const isAlumni = userRole === "alumni";
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  /* ✉️ Send message */
+  const sendMessage = async () => {
+    if (!text.trim() || !isVerified) return;
+
+    await supabase.from("discussion_messages").insert({
+      user_id: user.id,
+      name: userName,
+      role: userRole,
+      message: text,
+    });
+
+    setText("");
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  // Function to get initials from name
+  const getInitials = (name) => {
+    if (!name) return "?";
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  // Function to get avatar color based on user role or name
+  const getAvatarColor = (role, name) => {
+    const colors = {
+      student: "bg-purple-500",
+      alumni: "bg-blue-500",
+      faculty: "bg-pink-500",
+    };
+    
+    if (colors[role]) return colors[role];
+    
+    // Generate color based on name
+    const colorOptions = ["bg-indigo-500", "bg-green-500", "bg-yellow-500", "bg-red-500"];
+    const index = name ? name.charCodeAt(0) % colorOptions.length : 0;
+    return colorOptions[index];
+  };
+
+  // Format time
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   return (
-    <section className="min-h-screen bg-purple-50 p-10">
+    <section className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
       <Helmet>
-        <title>Connect Forum</title>
+        <title>Alumni Connect - Discussion Forum</title>
       </Helmet>
 
-      <h1 className="text-4xl font-bold text-purple-800 mb-6">
-        🤝 Alumni–Student Connect Forum
-      </h1>
+      {/* Header Section */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Alumni Connect
+            </h1>
+            <p className="text-gray-600">
+              Stay connected, share experiences, and grow together
+            </p>
+          </div>
 
-      {!isVerified && (
-        <p className="text-red-600 mb-6">
-          🔒 Verify your account to post or reply.
-        </p>
-      )}
-
-      {posts.map((post) => (
-        <div key={post.id} className="bg-white p-6 rounded-xl mb-4 shadow">
-          <h2 className="font-bold text-xl">{post.title}</h2>
-          <p className="mt-2">{post.content}</p>
-
-          {post.forum_replies?.map((r) => (
-            <div key={r.id} className="ml-4 mt-2 text-sm text-gray-700">
-              💬 {r.content}
+          {/* Three Feature Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            {/* Mentorship Card */}
+            <div
+              className="bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-indigo-200"
+              onClick={() => navigate("/mentorship")}
+            >
+              <div className="text-center">
+                <div className="text-5xl mb-3">🎓</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Mentorship
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Connect with mentors and guide others
+                </p>
+              </div>
             </div>
-          ))}
 
-          {canReply && (
-            <button className="text-purple-600 mt-2">
-              Reply
-            </button>
+            {/* Success Stories Card */}
+            <div
+              className="bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-indigo-200"
+              onClick={() => navigate("/success-stories")}
+            >
+              <div className="text-center">
+                <div className="text-5xl mb-3">⭐</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Success Stories
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Share and celebrate achievements
+                </p>
+              </div>
+            </div>
+
+            {/* Resource Exchange Card */}
+            <div
+              className="bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-indigo-200"
+              onClick={() => navigate("/resource-exchange")}
+            >
+              <div className="text-center">
+                <div className="text-5xl mb-3">🤝</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Resource Exchange
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Collaborate on projects and share resources
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Chat Container */}
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
+        {/* General Chat Section */}
+        <div className="bg-white rounded-3xl shadow-xl flex flex-col h-full overflow-hidden">
+          {/* Chat Header */}
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 rounded-t-3xl">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">💬</span>
+              <div>
+                <h2 className="text-xl font-bold">General Chat</h2>
+                <p className="text-indigo-100 text-sm">
+                  Connect with fellow alumni in real-time
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Verification Warning */}
+          {!isVerified && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 mx-6 mt-4 rounded">
+              <div className="flex items-center">
+                <span className="text-2xl mr-3">🔒</span>
+                <p className="text-red-700 font-medium">
+                  Please verify your account to participate in discussions.
+                </p>
+              </div>
+            </div>
           )}
-        </div>
-      ))}
 
-      {isAlumni && (
-        <div className="mt-10 bg-white p-6 rounded-xl shadow">
-          <h2 className="font-bold text-xl mb-3">Post Opportunity</h2>
-          <button className="bg-purple-600 text-white px-4 py-2 rounded">
-            Alumni Mentor Panel
-          </button>
+          {/* Chat Messages */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+            {messages.length === 0 ? (
+              <div className="text-center text-gray-400 py-12">
+                <p className="text-lg">No messages yet. Start the conversation!</p>
+              </div>
+            ) : (
+              messages.map((msg) => (
+                <div key={msg.id} className="flex items-start gap-3">
+                  {/* Avatar */}
+                  <div
+                    className={`${getAvatarColor(
+                      msg.role,
+                      msg.name
+                    )} text-white rounded-full w-10 h-10 flex items-center justify-center font-semibold text-sm flex-shrink-0`}
+                  >
+                    {getInitials(msg.name)}
+                  </div>
+
+                  {/* Message Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="font-semibold text-gray-900">
+                        {msg.name}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {formatTime(msg.created_at)}
+                      </span>
+                    </div>
+                    <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm border border-gray-100">
+                      <p className="text-gray-800 break-words">{msg.message}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Input Box */}
+          <div className="bg-white border-t border-gray-200 p-4">
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={
+                  isVerified
+                    ? "Type your message here... (Authentication required for real-time chat)"
+                    : "Verification required"
+                }
+                disabled={!isVerified}
+                className="flex-1 border border-gray-300 rounded-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!isVerified || !text.trim()}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                </svg>
+                Send
+              </button>
+            </div>
+            
+            {/* Footer Note */}
+            <div className="text-center mt-3">
+              <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+                <span>⚡</span>
+                Connect to Supabase to enable real-time chat and authentication
+              </p>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </section>
   );
 };

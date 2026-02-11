@@ -60,11 +60,11 @@
 import { createClient } from "@supabase/supabase-js";
 
 // kill corrupted tokens
-try {
-  Object.keys(localStorage)
-    .filter((k) => k.startsWith("sb-"))
-    .forEach((k) => localStorage.removeItem(k));
-} catch {}
+// try {
+//   Object.keys(localStorage)
+//     .filter((k) => k.startsWith("sb-"))
+//     .forEach((k) => localStorage.removeItem(k));
+// } catch {}
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;

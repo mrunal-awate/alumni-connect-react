@@ -758,93 +758,975 @@
 
 
 
-// /pages/AlumniSessions.jsx
-import React, { useEffect, useState } from "react";
+// // /pages/AlumniSessions.jsx
+// import React, { useEffect, useState } from "react";
 
-/* ---------------- STATIC SESSIONS DATA ---------------- */
-const allSessions = [
-  {
-    id: "session-1",
-    title: "How to Succeed in the Tech Industry",
-    speaker: "John Doe",
-    batch: "2015",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-    description:
-      "Join us as John shares his inspiring journey from SITS to becoming a Senior Developer at Google.",
-    speakerBio:
-      "John Doe is a distinguished alumnus from the 2015 batch, currently serving as a Senior Developer at Google.",
-    date: "2024-03-15",
-  },
-  {
-    id: "session-2",
-    title: "Landing Jobs After Graduation",
-    speaker: "Jane Smith",
-    batch: "2016",
-    videoUrl: "https://www.youtube.com/embed/s_x3Jm-2N0k",
-    description:
-      "Expert tips on resume building, networking, and interview strategies.",
-    speakerBio:
-      "Jane Smith is a seasoned HR professional and career coach.",
-    date: "2024-02-20",
-  },
-];
+// /* ---------------- STATIC SESSIONS DATA ---------------- */
+// const allSessions = [
+//   {
+//     id: "session-1",
+//     title: "How to Succeed in the Tech Industry",
+//     speaker: "John Doe",
+//     batch: "2015",
+//     videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+//     description:
+//       "Join us as John shares his inspiring journey from SITS to becoming a Senior Developer at Google.",
+//     speakerBio:
+//       "John Doe is a distinguished alumnus from the 2015 batch, currently serving as a Senior Developer at Google.",
+//     date: "2024-03-15",
+//   },
+//   {
+//     id: "session-2",
+//     title: "Landing Jobs After Graduation",
+//     speaker: "Jane Smith",
+//     batch: "2016",
+//     videoUrl: "https://www.youtube.com/embed/s_x3Jm-2N0k",
+//     description:
+//       "Expert tips on resume building, networking, and interview strategies.",
+//     speakerBio:
+//       "Jane Smith is a seasoned HR professional and career coach.",
+//     date: "2024-02-20",
+//   },
+// ];
+
+// const AlumniSessions = () => {
+//   const [currentSession, setCurrentSession] = useState(null);
+
+//   /* ---------------- DEFAULT SESSION LOAD ---------------- */
+//   useEffect(() => {
+//     setCurrentSession(allSessions[0]);
+//   }, []);
+
+//   if (!currentSession) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center text-blue-700 text-xl">
+//         Loading session...
+//       </div>
+//     );
+//   }
+
+//   /* ---------------- UI ---------------- */
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8 md:px-8">
+//       <h1 className="text-4xl md:text-5xl font-extrabold text-center text-blue-800 mb-10">
+//         🎓 Alumni Interactive Sessions
+//       </h1>
+
+//       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow p-6">
+//         <div className="aspect-video mb-6 rounded-lg overflow-hidden">
+//           <iframe
+//             className="w-full h-full"
+//             src={currentSession.videoUrl}
+//             title={currentSession.title}
+//             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+//             allowFullScreen
+//           />
+//         </div>
+
+//         <h2 className="text-3xl font-bold text-gray-800 mb-2">
+//           {currentSession.title}
+//         </h2>
+
+//         <p className="text-blue-600 font-medium mb-3">
+//           🎤 {currentSession.speaker} (Batch {currentSession.batch})
+//         </p>
+
+//         <p className="text-gray-700 mb-4">
+//           {currentSession.description}
+//         </p>
+
+//         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+//           <h3 className="text-xl font-semibold text-blue-700 mb-2">
+//             About the Speaker
+//           </h3>
+//           <p className="text-gray-700 text-sm">
+//             {currentSession.speakerBio}
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default AlumniSessions;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------- old version -------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet";
+import { supabase } from "../supabaseClient";
+import {
+  Play,
+  Calendar,
+  Clock,
+  Users,
+  ThumbsUp,
+  MessageSquare,
+  Share2,
+  Search,
+  Video,
+  Send,
+  Bookmark,
+  Eye,
+  Radio,
+  ChevronRight,
+  Sparkles
+} from "lucide-react";
 
 const AlumniSessions = () => {
-  const [currentSession, setCurrentSession] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("All Sessions");
+  const [filterCategory, setFilterCategory] = useState("All Categories");
+  
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isVerified, setIsVerified] = useState(false);
+  
+  // Live session state
+  const [liveSessions, setLiveSessions] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
 
-  /* ---------------- DEFAULT SESSION LOAD ---------------- */
+  /* 🔐 Auth + verification */
   useEffect(() => {
-    setCurrentSession(allSessions[0]);
+    const init = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) return;
+
+      const userId = session.user.id;
+      setCurrentUser(userId);
+
+      const { data: student } = await supabase
+        .from("students")
+        .select("is_verified, name")
+        .eq("id", userId)
+        .maybeSingle();
+
+      const { data: alumni } = await supabase
+        .from("alumni")
+        .select("is_verified, name")
+        .eq("id", userId)
+        .maybeSingle();
+
+      const { data: faculty } = await supabase
+        .from("faculty")
+        .select("is_verified, name")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (student?.is_verified || alumni?.is_verified || faculty?.is_verified) {
+        setIsVerified(true);
+      }
+    };
+
+    init();
   }, []);
 
-  if (!currentSession) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-blue-700 text-xl">
-        Loading session...
-      </div>
-    );
-  }
+  /* 📊 Fetch sessions from Supabase */
+  useEffect(() => {
+    fetchSessions();
+    fetchLiveSessions();
+  }, []);
 
-  /* ---------------- UI ---------------- */
+  const fetchSessions = async () => {
+    setLoading(true);
+    try {
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from("alumni_sessions")
+        .select(`
+          *,
+          speaker:session_speakers(*)
+        `)
+        .eq("is_published", true)
+        .order("scheduled_date", { ascending: false });
+
+      if (sessionsError) throw sessionsError;
+      setSessions(sessionsData || []);
+    } catch (error) {
+      console.error("Error fetching sessions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLiveSessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("alumni_sessions")
+        .select(`
+          *,
+          speaker:session_speakers(*)
+        `)
+        .eq("is_live", true)
+        .eq("is_published", true);
+
+      if (error) throw error;
+      setLiveSessions(data || []);
+    } catch (error) {
+      console.error("Error fetching live sessions:", error);
+    }
+  };
+
+  /* 💬 Fetch chat messages for live session */
+  const fetchChatMessages = async (sessionId) => {
+    try {
+      const { data, error } = await supabase
+        .from("session_chat")
+        .select("*")
+        .eq("session_id", sessionId)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: true })
+        .limit(100);
+
+      if (error) throw error;
+      setChatMessages(data || []);
+    } catch (error) {
+      console.error("Error fetching chat:", error);
+    }
+  };
+
+  /* 📤 Send chat message */
+  const sendChatMessage = async (sessionId) => {
+    if (!newMessage.trim() || !currentUser) return;
+
+    try {
+      const { error } = await supabase
+        .from("session_chat")
+        .insert([
+          {
+            session_id: sessionId,
+            user_id: currentUser,
+            message: newMessage.trim(),
+            user_name: "Current User", // Replace with actual user name
+          },
+        ]);
+
+      if (error) throw error;
+      setNewMessage("");
+      fetchChatMessages(sessionId);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  };
+
+  /* 👍 Handle reactions */
+  const handleReaction = async (sessionId) => {
+    if (!currentUser) return;
+
+    try {
+      // Check if user already reacted
+      const { data: existing } = await supabase
+        .from("session_reactions")
+        .select("*")
+        .eq("session_id", sessionId)
+        .eq("user_id", currentUser)
+        .eq("reaction_type", "like")
+        .single();
+
+      if (existing) {
+        // Remove reaction
+        await supabase
+          .from("session_reactions")
+          .delete()
+          .eq("id", existing.id);
+
+        // Decrement likes
+        await supabase.rpc("decrement", {
+          table_name: "alumni_sessions",
+          row_id: sessionId,
+          column_name: "likes_count",
+        });
+      } else {
+        // Add reaction
+        await supabase.from("session_reactions").insert([
+          {
+            session_id: sessionId,
+            user_id: currentUser,
+            reaction_type: "like",
+          },
+        ]);
+
+        // Increment likes
+        const { data: session } = await supabase
+          .from("alumni_sessions")
+          .select("likes_count")
+          .eq("id", sessionId)
+          .single();
+
+        await supabase
+          .from("alumni_sessions")
+          .update({ likes_count: (session?.likes_count || 0) + 1 })
+          .eq("id", sessionId);
+      }
+
+      fetchSessions();
+    } catch (error) {
+      console.error("Error handling reaction:", error);
+    }
+  };
+
+  /* 📺 Increment view count */
+  const incrementViewCount = async (sessionId) => {
+    try {
+      await supabase.rpc("increment_session_views", {
+        session_id: sessionId,
+      });
+    } catch (error) {
+      console.error("Error incrementing views:", error);
+    }
+  };
+
+  /* 🔍 Filter sessions */
+  const filteredSessions = sessions.filter((session) => {
+    const matchesSearch =
+      session.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      session.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      session.speaker?.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesType =
+      filterType === "All Sessions" ||
+      (filterType === "Live" && session.is_live) ||
+      (filterType === "Upcoming" && session.status === "upcoming") ||
+      (filterType === "Past" && session.status === "completed");
+
+    const matchesCategory =
+      filterCategory === "All Categories" || session.category === filterCategory;
+
+    return matchesSearch && matchesType && matchesCategory;
+  });
+
+  // Separate sessions by type
+  const upcomingSessions = filteredSessions.filter((s) => s.status === "upcoming");
+  const completedSessions = filteredSessions.filter((s) => s.status === "completed");
+
+  const formatDate = (dateString) =>
+    new Date(dateString).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
+  const formatTime = (dateString) =>
+    new Date(dateString).toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const getDuration = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}:${mins.toString().padStart(2, "0")}:00` : `${mins}:00`;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8 md:px-8">
-      <h1 className="text-4xl md:text-5xl font-extrabold text-center text-blue-800 mb-10">
-        🎓 Alumni Interactive Sessions
-      </h1>
+    <section className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4 md:px-8">
+      <Helmet>
+        <title>Alumni Sessions | SITS Connect</title>
+      </Helmet>
 
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow p-6">
-        <div className="aspect-video mb-6 rounded-lg overflow-hidden">
-          <iframe
-            className="w-full h-full"
-            src={currentSession.videoUrl}
-            title={currentSession.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
-          {currentSession.title}
-        </h2>
-
-        <p className="text-blue-600 font-medium mb-3">
-          🎤 {currentSession.speaker} (Batch {currentSession.batch})
-        </p>
-
-        <p className="text-gray-700 mb-4">
-          {currentSession.description}
-        </p>
-
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <h3 className="text-xl font-semibold text-blue-700 mb-2">
-            About the Speaker
-          </h3>
-          <p className="text-gray-700 text-sm">
-            {currentSession.speakerBio}
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold text-gray-900 mb-3">
+            Alumni Sessions
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Learn from industry experts and successful alumni
           </p>
         </div>
+
+        {/* Live Sessions Banner */}
+        {liveSessions.length > 0 && (
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-xl p-6 text-white shadow-lg">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm">
+                    <Radio className="animate-pulse" size={20} />
+                    <span className="font-bold">LIVE NOW</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users size={18} />
+                    <span className="font-semibold">
+                      {liveSessions[0]?.live_viewers_count || 0} viewers
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedSession(liveSessions[0]);
+                    setShowSessionModal(true);
+                    incrementViewCount(liveSessions[0].id);
+                    fetchChatMessages(liveSessions[0].id);
+                  }}
+                  className="bg-white text-red-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition flex items-center gap-2"
+                >
+                  <Play size={20} />
+                  Join Live Session
+                </button>
+              </div>
+              <h3 className="text-2xl font-bold mt-4">
+                {liveSessions[0]?.title}
+              </h3>
+              <p className="mt-2 opacity-90">
+                with {liveSessions[0]?.speaker?.name}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Search and Filters */}
+        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search */}
+            <div className="relative md:col-span-1">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
+              <input
+                type="text"
+                placeholder="Search sessions or speakers..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              />
+            </div>
+
+            {/* Type Filter */}
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+            >
+              <option>All Sessions</option>
+              <option>Live</option>
+              <option>Upcoming</option>
+              <option>Past</option>
+            </select>
+
+            {/* Category Filter */}
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+            >
+              <option>All Categories</option>
+              <option>Career Development</option>
+              <option>Technical Skills</option>
+              <option>Entrepreneurship</option>
+              <option>Industry Insights</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600">Loading sessions...</p>
+          </div>
+        )}
+
+        {/* Upcoming Sessions */}
+        {!loading && upcomingSessions.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <Calendar className="text-blue-600" size={32} />
+              Upcoming Sessions
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {upcomingSessions.map((session, index) => (
+                <SessionCard
+                  key={session.id}
+                  session={session}
+                  index={index}
+                  onSelect={() => {
+                    setSelectedSession(session);
+                    setShowSessionModal(true);
+                  }}
+                  formatDate={formatDate}
+                  formatTime={formatTime}
+                  getDuration={getDuration}
+                  onReaction={handleReaction}
+                  isVerified={isVerified}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Past Sessions */}
+        {!loading && completedSessions.length > 0 && (
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <Video className="text-blue-600" size={32} />
+              Past Sessions
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {completedSessions.map((session, index) => (
+                <SessionCard
+                  key={session.id}
+                  session={session}
+                  index={index}
+                  onSelect={() => {
+                    setSelectedSession(session);
+                    setShowSessionModal(true);
+                    incrementViewCount(session.id);
+                  }}
+                  formatDate={formatDate}
+                  formatTime={formatTime}
+                  getDuration={getDuration}
+                  onReaction={handleReaction}
+                  isVerified={isVerified}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* No Results */}
+        {!loading && filteredSessions.length === 0 && (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+              <Search className="text-gray-400" size={32} />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No sessions found
+            </h3>
+            <p className="text-gray-600">
+              Try adjusting your search or filter criteria
+            </p>
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* Session Detail Modal */}
+      <SessionModal
+        session={selectedSession}
+        isOpen={showSessionModal}
+        onClose={() => {
+          setShowSessionModal(false);
+          setSelectedSession(null);
+        }}
+        chatMessages={chatMessages}
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        sendMessage={() => sendChatMessage(selectedSession?.id)}
+        currentUser={currentUser}
+        isVerified={isVerified}
+        onReaction={handleReaction}
+      />
+    </section>
+  );
+};
+
+/* Session Card Component */
+const SessionCard = ({
+  session,
+  index,
+  onSelect,
+  formatDate,
+  formatTime,
+  getDuration,
+  onReaction,
+  isVerified,
+}) => {
+  const isUpcoming = session.status === "upcoming";
+  const isLive = session.is_live;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+      className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 cursor-pointer group"
+      onClick={onSelect}
+    >
+      {/* Thumbnail */}
+      <div className="relative aspect-video bg-gradient-to-br from-blue-900 to-indigo-900 flex items-center justify-center overflow-hidden">
+        {session.thumbnail_url ? (
+          <img
+            src={session.thumbnail_url}
+            alt={session.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="text-white">
+            <Play size={64} className="opacity-50" />
+          </div>
+        )}
+        
+        {/* Duration/Status Badge */}
+        <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded text-xs font-semibold">
+          {isLive ? (
+            <span className="flex items-center gap-1">
+              <Radio size={12} className="text-red-500 animate-pulse" />
+              LIVE
+            </span>
+          ) : session.duration_minutes ? (
+            getDuration(session.duration_minutes)
+          ) : (
+            "Recorded"
+          )}
+        </div>
+
+        {/* Featured Badge */}
+        {session.is_featured && (
+          <div className="absolute top-3 left-3 bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+            <Sparkles size={12} />
+            FEATURED
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-5">
+        {/* Title */}
+        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition">
+          {session.title}
+        </h3>
+
+        {/* Session Info */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            session.speaker?.speaker_type === "Alumni"
+              ? "bg-green-100 text-green-700"
+              : "bg-purple-100 text-purple-700"
+          }`}>
+            {session.speaker?.speaker_type || "Alumni"} Session
+          </span>
+        </div>
+
+        {/* Speaker Info */}
+        {session.speaker && (
+          <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+              {session.speaker.photo_url ? (
+                <img
+                  src={session.speaker.photo_url}
+                  alt={session.speaker.name}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                session.speaker.name.substring(0, 2).toUpperCase()
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-gray-900 truncate">
+                {session.speaker.name}
+              </p>
+              <p className="text-xs text-gray-600 truncate">
+                {session.speaker.job_role}
+                {session.speaker.current_company && ` • ${session.speaker.current_company}`}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Date/Time for Upcoming */}
+        {isUpcoming && (
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Calendar size={16} />
+              <span>{formatDate(session.scheduled_date)}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Clock size={16} />
+              <span>{formatTime(session.scheduled_date)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Engagement Stats */}
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onReaction(session.id);
+              }}
+              className="flex items-center gap-1 hover:text-blue-600 transition"
+            >
+              <ThumbsUp size={16} />
+              <span>{session.likes_count || 0}</span>
+            </button>
+            <div className="flex items-center gap-1">
+              <MessageSquare size={16} />
+              <span>{session.comments_count || 0}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <Eye size={16} />
+            <span>{session.views_count || 0} views</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+/* Session Modal Component */
+const SessionModal = ({
+  session,
+  isOpen,
+  onClose,
+  chatMessages,
+  newMessage,
+  setNewMessage,
+  sendMessage,
+  currentUser,
+  isVerified,
+  onReaction,
+}) => {
+  if (!session) return null;
+
+  const getYouTubeEmbedUrl = (videoId) => {
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[90vh] overflow-hidden flex flex-col"
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {session.title}
+              </h2>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+                {/* Video Player */}
+                <div className="lg:col-span-2 space-y-6">
+                  {session.youtube_video_id && (
+                    <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                      <iframe
+                        className="w-full h-full"
+                        src={getYouTubeEmbedUrl(session.youtube_video_id)}
+                        title={session.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+
+                  {/* Session Info */}
+                  <div className="space-y-4">
+                    {/* Engagement */}
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => onReaction(session.id)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition"
+                      >
+                        <ThumbsUp size={20} />
+                        <span className="font-semibold">{session.likes_count || 0}</span>
+                      </button>
+                      <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        <Share2 size={20} />
+                        <span className="font-semibold">Share</span>
+                      </button>
+                      <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        <Bookmark size={20} />
+                        <span className="font-semibold">Save</span>
+                      </button>
+                    </div>
+
+                    {/* Speaker Card */}
+                    {session.speaker && (
+                      <div className="bg-blue-50 rounded-xl p-6">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
+                            {session.speaker.photo_url ? (
+                              <img
+                                src={session.speaker.photo_url}
+                                alt={session.speaker.name}
+                                className="w-full h-full rounded-full object-cover"
+                              />
+                            ) : (
+                              session.speaker.name.substring(0, 2).toUpperCase()
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900">
+                              {session.speaker.name}
+                            </h3>
+                            <p className="text-blue-600 font-medium">
+                              {session.speaker.job_role}
+                            </p>
+                            {session.speaker.current_company && (
+                              <p className="text-gray-600 text-sm">
+                                {session.speaker.current_company}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {session.speaker.bio && (
+                          <p className="text-gray-700 text-sm">
+                            {session.speaker.bio}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* About Session */}
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">
+                        About this session
+                      </h3>
+                      <p className="text-gray-700">{session.description}</p>
+                    </div>
+
+                    {/* Topics */}
+                    {session.topics && session.topics.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Topics Covered:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {session.topics.map((topic, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
+                            >
+                              {topic}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Live Chat Sidebar */}
+                {session.is_live && session.chat_enabled && (
+                  <div className="lg:col-span-1">
+                    <div className="bg-gray-900 rounded-xl h-[600px] flex flex-col">
+                      {/* Chat Header */}
+                      <div className="px-4 py-3 border-b border-gray-700">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-white font-semibold flex items-center gap-2">
+                            <MessageSquare size={20} />
+                            Live Chat
+                          </h3>
+                          <div className="flex items-center gap-1 text-white text-sm">
+                            <Users size={16} />
+                            <span>{session.live_viewers_count || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Chat Messages */}
+                      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        {chatMessages.map((msg) => (
+                          <div key={msg.id} className="flex gap-2">
+                            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                              {msg.user_name.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-white font-semibold text-sm">
+                                  {msg.user_name}
+                                </span>
+                                <span className="text-gray-400 text-xs">
+                                  {new Date(msg.created_at).toLocaleTimeString()}
+                                </span>
+                              </div>
+                              <p className="text-gray-300 text-sm">{msg.message}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Chat Input */}
+                      {isVerified && currentUser ? (
+                        <div className="p-4 border-t border-gray-700">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={newMessage}
+                              onChange={(e) => setNewMessage(e.target.value)}
+                              onKeyPress={(e) => {
+                                if (e.key === "Enter") sendMessage();
+                              }}
+                              placeholder="Say something..."
+                              className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-blue-500 outline-none"
+                            />
+                            <button
+                              onClick={sendMessage}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                            >
+                              <Send size={20} />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-4 border-t border-gray-700 text-center text-gray-400 text-sm">
+                          Sign in to chat
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };
 
