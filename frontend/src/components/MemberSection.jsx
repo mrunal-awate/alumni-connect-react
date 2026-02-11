@@ -1728,14 +1728,13 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import AlumniCard from "./AlumniCard";
 import "./MemberSection.css";
 
-const ITEMS_PER_PAGE = 12;
+// const ITEMS_PER_PAGE = 12;
 
 const BRANCHES = [
   "Computer Engineer",
@@ -1758,7 +1757,7 @@ const MemberSection = () => {
   const [selectedCompanies, setSelectedCompanies] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   
@@ -1869,7 +1868,7 @@ const MemberSection = () => {
     }, {});
     
     setGroupedByBatch(grouped);
-    setCurrentPage(1);
+    // setCurrentPage(1);
   }, [selectedBranches, selectedYears, selectedLocations, selectedCompanies, searchQuery, alumniList]);
 
   // Toggle filter selection
@@ -1889,10 +1888,6 @@ const MemberSection = () => {
     setSelectedCompanies([]);
     setSearchQuery("");
   };
-
-  const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentItems = filteredList.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
     <div className="member-section-container">
@@ -2059,35 +2054,10 @@ const MemberSection = () => {
                 ))}
             </div>
           )}
-
-          {/* Pagination (if needed) */}
-          {totalPages > 1 && (
-            <div className="pagination">
-              <button
-                className="pagination-btn"
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                ← Previous
-              </button>
-              <span className="page-info">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                className="pagination-btn"
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Next →
-              </button>
-            </div>
-          )}
         </main>
       </div>
     </div>
   );
 };
-
-
 
 export default MemberSection;
