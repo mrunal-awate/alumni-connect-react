@@ -73,8 +73,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storageKey: "sits-auth",
+    storage: window.localStorage,
+    // detectSessionInUrl: true,
+    // storageKey: "sits-auth",
   },
 });
 
