@@ -1022,7 +1022,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await supabase.auth.signOut();
     } catch {}
-    localStorage.clear();
+    localStorage.removeItem('supabase.auth.token'); // 🔥 kill corrupted refresh tokens
     setSession(null);
     setUser(null);
     setRole(null);
@@ -1039,7 +1039,7 @@ export const AuthProvider = ({ children }) => {
     const { data: admin, error: adminError } = await supabase
       .from("admin")
       .select("user_id")
-      .eq("user_id", uid)
+      .eq("id", uid)
       .maybeSingle();
 
     console.log("ADMIN QUERY RESULT:", admin, adminError);
@@ -1081,7 +1081,7 @@ export const AuthProvider = ({ children }) => {
 
     /* 🎓 STUDENT */
     const { data: student } = await supabase
-      .from("students")
+      .from("student")
       .select("is_verified")
       .eq("id", uid)
       .maybeSingle();

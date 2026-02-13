@@ -97,6 +97,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+// Environment variables
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
@@ -104,37 +105,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
+// Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // Enable automatic token refresh
     autoRefreshToken: true,
-    
-    // Persist session in localStorage (prevents auto-logout)
     persistSession: true,
-    
-    // Detect session in URL (for OAuth flows)
     detectSessionInUrl: true,
-    
-    // Use localStorage instead of sessionStorage
     storage: window.localStorage,
-    
-    // Flow type - use 'pkce' for enhanced security
     flowType: 'pkce',
   },
-  
-  // Global options
+
   global: {
     headers: {
       'x-application-name': 'alumni-connect',
     },
   },
-  
-  // Database options
+
   db: {
     schema: 'public',
   },
-  
-  // Realtime options (if you use subscriptions)
+
   realtime: {
     params: {
       eventsPerSecond: 10,
@@ -142,24 +132,30 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Helper function to get current user with role
+
+// -------------------------------
+// Helper: Get current user + role
+// -------------------------------
 export const getCurrentUserWithRole = async () => {
   try {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    // Get authenticated user
+    const { data: { user }, error: userError } =
+      await supabase.auth.getUser();
+
     if (userError || !user) {
       return { user: null, role: null, profile: null };
     }
 
-    // Get user role
-    const { data: role, error: roleError } = await supabase.rpc('get_user_role');
-    
+    // Get role from RPC
+    const { data: role, error: roleError } =
+      await supabase.rpc('get_user_role');
+
     if (roleError || !role) {
+      console.error('Role fetch error:', roleError);
       return { user, role: null, profile: null };
     }
 
-    // Get profile from respective table
+    // Fetch profile from role-based table
     const { data: profile, error: profileError } = await supabase
       .from(role)
       .select('*')
@@ -167,35 +163,54 @@ export const getCurrentUserWithRole = async () => {
       .single();
 
     if (profileError) {
-      console.error('Error fetching profile:', profileError);
+      console.error('Profile fetch error:', profileError);
       return { user, role, profile: null };
     }
 
     return { user, role, profile };
-  } catch (error) {
-    console.error('Error in getCurrentUserWithRole:', error);
+
+  } catch (err) {
+    console.error('Error in getCurrentUserWithRole:', err);
     return { user: null, role: null, profile: null };
   }
 };
 
-// Helper function to check if user is admin
+
+// -------------------------------
+// Helper: Check Admin
+// -------------------------------
 export const checkIsAdmin = async () => {
   try {
     const { data, error } = await supabase.rpc('is_admin');
+
+    if (error) {
+      console.error('Admin check error:', error);
+      return false;
+    }
+
     return data ?? false;
-  } catch (error) {
-    console.error('Error checking admin status:', error);
+  } catch (err) {
+    console.error('Unexpected admin error:', err);
     return false;
   }
 };
 
-// Helper function to check if user is verified
+
+// -------------------------------
+// Helper: Check Verified User
+// -------------------------------
 export const checkIsVerified = async () => {
   try {
     const { data, error } = await supabase.rpc('is_verified_user');
+
+    if (error) {
+      console.error('Verification check error:', error);
+      return false;
+    }
+
     return data ?? false;
-  } catch (error) {
-    console.error('Error checking verification status:', error);
+  } catch (err) {
+    console.error('Unexpected verification error:', err);
     return false;
   }
 };
