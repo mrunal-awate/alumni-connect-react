@@ -1201,22 +1201,25 @@ export const AuthProvider = ({ children }) => {
   const [isVerified, setIsVerified] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
-  /* ---------------- FORCE LOGOUT ---------------- */
+ /* ---------------- FORCE LOGOUT ---------------- */
 
-  const forceLogout = useCallback(async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
+const forceLogout = useCallback(async () => {
+  try {
+    // Supabase automatically clears session + storage
+    await supabase.auth.signOut();
+  } catch (err) {
+    console.error("Logout error:", err);
+  }
 
-    localStorage.removeItem("supabase.auth.token");
+  // ❌ REMOVE manual localStorage deletion
+  // localStorage.removeItem("supabase.auth.token");
 
-    setSession(null);
-    setUser(null);
-    setRole(null);
-    setIsVerified(false);
-  }, []);
+  setSession(null);
+  setUser(null);
+  setRole(null);
+  setIsVerified(false);
+}, []);
+
 
   /* ---------------- ROLE RESOLUTION ---------------- */
 
