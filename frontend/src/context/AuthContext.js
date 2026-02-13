@@ -998,6 +998,191 @@
 
 
 
+// import {
+//   createContext,
+//   useContext,
+//   useEffect,
+//   useState,
+//   useCallback,
+// } from "react";
+// import { supabase } from "../supabaseClient";
+
+// const AuthContext = createContext();
+
+// export const AuthProvider = ({ children }) => {
+//   const [session, setSession] = useState(null);
+//   const [user, setUser] = useState(null);
+//   const [role, setRole] = useState(null);
+//   const [isVerified, setIsVerified] = useState(false);
+//   const [authLoading, setAuthLoading] = useState(true);
+
+//   /* ---------------- FORCE LOGOUT ---------------- */
+
+//   const forceLogout = useCallback(async () => {
+//     try {
+//       await supabase.auth.signOut();
+//     } catch {}
+//     localStorage.removeItem('supabase.auth.token'); // 🔥 kill corrupted refresh tokens
+//     setSession(null);
+//     setUser(null);
+//     setRole(null);
+//     setIsVerified(false);
+//   }, []);
+
+//   /* ---------------- ROLE RESOLUTION ---------------- */
+
+//   const resolveRole = useCallback(async (uid) => {
+//     console.log("RESOLVE ROLE FOR UID:", uid);
+
+    
+//     /* 👨‍💼 ADMIN */
+//     const { data: admin, error: adminError } = await supabase
+//       .from("admin")
+//       .select("user_id")
+//       .eq("id", uid)
+//       .maybeSingle();
+
+//     console.log("ADMIN QUERY RESULT:", admin, adminError);
+
+//     if (admin) {
+//       console.log("ADMIN ROLE DETECTED");
+//       setRole("admin");
+//       setIsVerified(true);
+//       return;
+//     }
+
+//     console.log("ADMIN NOT FOUND, CHECKING OTHER ROLES...");
+
+//     /* 🧑‍🎓 ALUMNI */
+//     const { data: alumni } = await supabase
+//       .from("alumni")
+//       .select("is_verified")
+//       .eq("id", uid)
+//       .maybeSingle();
+
+//     if (alumni) {
+//       setRole("alumni");
+//       setIsVerified(alumni.is_verified === true);
+//       return;
+//     }
+
+//     /* 🧑‍🏫 FACULTY */
+//     const { data: faculty } = await supabase
+//       .from("faculty")
+//       .select("is_verified")
+//       .eq("id", uid)
+//       .maybeSingle();
+
+//     if (faculty) {
+//       setRole("faculty");
+//       setIsVerified(faculty.is_verified === true);
+//       return;
+//     }
+
+//     /* 🎓 STUDENT */
+//     const { data: student } = await supabase
+//       .from("student")
+//       .select("is_verified")
+//       .eq("id", uid)
+//       .maybeSingle();
+
+//     if (student) {
+//       setRole("student");
+//       setIsVerified(student.is_verified === true);
+//       return;
+//     }
+
+//     /* ❌ NO ROLE */
+//     setRole("guest");
+//     setIsVerified(false);
+//   }, []);
+
+//   /* ---------------- BOOTSTRAP ---------------- */
+
+//   useEffect(() => {
+//     const init = async () => {
+//       try {
+//         const { data } = await supabase.auth.getSession();
+//         const currentSession = data.session;
+
+//         setSession(currentSession);
+//         setUser(currentSession?.user || null);
+
+//         if (currentSession?.user) {
+//           await resolveRole(currentSession.user.id);
+//         }
+//       } catch {
+//         await forceLogout();
+//       } finally {
+//         setAuthLoading(false);
+//       }
+//     };
+
+//     init();
+
+//     const { data: listener } = supabase.auth.onAuthStateChange(
+//       async (_event, newSession) => {
+//         setSession(newSession);
+//         setUser(newSession?.user || null);
+
+//         if (newSession?.user) {
+//           await resolveRole(newSession.user.id);
+//         } else {
+//           setRole(null);
+//           setIsVerified(false);
+//         }
+//       }
+//     );
+
+//     return () => listener.subscription.unsubscribe();
+//   }, [resolveRole, forceLogout]);
+
+//   /* ---------------- EXPORT ---------------- */
+
+//   return (
+//     <AuthContext.Provider
+//       value={{
+//         session,
+//         user,
+//         role,
+//         isVerified,
+//         authLoading,
+
+//         isAuthenticated: !!session && !!user,
+//         isAdmin: role === "admin",
+//         isAlumni: role === "alumni",
+//         isFaculty: role === "faculty",
+//         isStudent: role === "student",
+
+//         logout: forceLogout,
+//       }}
+//     >
+//       {children}
+//     </AuthContext.Provider>
+//   );
+// };
+
+// export const useAuth = () => useContext(AuthContext);
+
+
+
+
+
+
+// -------------------------------------------------------------final version online-------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
 import {
   createContext,
   useContext,
@@ -1021,8 +1206,12 @@ export const AuthProvider = ({ children }) => {
   const forceLogout = useCallback(async () => {
     try {
       await supabase.auth.signOut();
-    } catch {}
-    localStorage.removeItem('supabase.auth.token'); // 🔥 kill corrupted refresh tokens
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+
+    localStorage.removeItem("supabase.auth.token");
+
     setSession(null);
     setUser(null);
     setRole(null);
@@ -1032,69 +1221,74 @@ export const AuthProvider = ({ children }) => {
   /* ---------------- ROLE RESOLUTION ---------------- */
 
   const resolveRole = useCallback(async (uid) => {
-    console.log("RESOLVE ROLE FOR UID:", uid);
+    try {
+      console.log("Resolving role for:", uid);
 
-    
-    /* 👨‍💼 ADMIN */
-    const { data: admin, error: adminError } = await supabase
-      .from("admin")
-      .select("user_id")
-      .eq("id", uid)
-      .maybeSingle();
+      // 👨‍💼 ADMIN
+      const { data: admin, error: adminError } = await supabase
+        .from("admin")
+        .select("*")
+        .eq("id", uid)
+        .maybeSingle();
 
-    console.log("ADMIN QUERY RESULT:", admin, adminError);
+      if (adminError) {
+        console.error("Admin query error:", adminError);
+      }
 
-    if (admin) {
-      console.log("ADMIN ROLE DETECTED");
-      setRole("admin");
-      setIsVerified(true);
-      return;
+      if (admin) {
+        setRole("admin");
+        setIsVerified(true);
+        return;
+      }
+
+      // 🧑‍🎓 ALUMNI
+      const { data: alumni } = await supabase
+        .from("alumni")
+        .select("is_verified, name, email")
+        .eq("id", uid)
+        .maybeSingle();
+
+      if (alumni) {
+        setRole("alumni");
+        setIsVerified(alumni.is_verified === true);
+        return;
+      }
+
+      // 🧑‍🏫 FACULTY
+      const { data: faculty } = await supabase
+        .from("faculty")
+        .select("is_verified, name, email")
+        .eq("id", uid)
+        .maybeSingle();
+
+      if (faculty) {
+        setRole("faculty");
+        setIsVerified(faculty.is_verified === true);
+        return;
+      }
+
+      // 🎓 STUDENT
+      const { data: student } = await supabase
+        .from("student")
+        .select("is_verified, name, email")
+        .eq("id", uid)
+        .maybeSingle();
+
+      if (student) {
+        setRole("student");
+        setIsVerified(student.is_verified === true);
+        return;
+      }
+
+      // ❌ No role
+      setRole("guest");
+      setIsVerified(false);
+
+    } catch (err) {
+      console.error("Error resolving role:", err);
+      setRole("guest");
+      setIsVerified(false);
     }
-
-    console.log("ADMIN NOT FOUND, CHECKING OTHER ROLES...");
-
-    /* 🧑‍🎓 ALUMNI */
-    const { data: alumni } = await supabase
-      .from("alumni")
-      .select("is_verified")
-      .eq("id", uid)
-      .maybeSingle();
-
-    if (alumni) {
-      setRole("alumni");
-      setIsVerified(alumni.is_verified === true);
-      return;
-    }
-
-    /* 🧑‍🏫 FACULTY */
-    const { data: faculty } = await supabase
-      .from("faculty")
-      .select("is_verified")
-      .eq("id", uid)
-      .maybeSingle();
-
-    if (faculty) {
-      setRole("faculty");
-      setIsVerified(faculty.is_verified === true);
-      return;
-    }
-
-    /* 🎓 STUDENT */
-    const { data: student } = await supabase
-      .from("student")
-      .select("is_verified")
-      .eq("id", uid)
-      .maybeSingle();
-
-    if (student) {
-      setRole("student");
-      setIsVerified(student.is_verified === true);
-      return;
-    }
-
-    /* ❌ NO ROLE */
-    setRole("guest");
-    setIsVerified(false);
   }, []);
 
   /* ---------------- BOOTSTRAP ---------------- */
@@ -1102,7 +1296,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const init = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error) throw error;
+
         const currentSession = data.session;
 
         setSession(currentSession);
@@ -1111,7 +1308,9 @@ export const AuthProvider = ({ children }) => {
         if (currentSession?.user) {
           await resolveRole(currentSession.user.id);
         }
-      } catch {
+
+      } catch (err) {
+        console.error("Auth init error:", err);
         await forceLogout();
       } finally {
         setAuthLoading(false);
@@ -1120,46 +1319,67 @@ export const AuthProvider = ({ children }) => {
 
     init();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, newSession) => {
-        setSession(newSession);
-        setUser(newSession?.user || null);
+    // Auth listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      setSession(newSession);
+      setUser(newSession?.user || null);
 
-        if (newSession?.user) {
-          await resolveRole(newSession.user.id);
-        } else {
-          setRole(null);
-          setIsVerified(false);
-        }
+      if (newSession?.user) {
+        await resolveRole(newSession.user.id);
+      } else {
+        setRole(null);
+        setIsVerified(false);
       }
-    );
+    });
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [resolveRole, forceLogout]);
 
-  /* ---------------- EXPORT ---------------- */
+  /* ---------------- HELPERS ---------------- */
+
+  const refreshRole = useCallback(async () => {
+    if (user?.id) {
+      await resolveRole(user.id);
+    }
+  }, [user, resolveRole]);
+
+  /* ---------------- CONTEXT VALUE ---------------- */
+
+  const contextValue = {
+    session,
+    user,
+    role,
+    isVerified,
+    authLoading,
+
+    isAuthenticated: !!session && !!user,
+    isAdmin: role === "admin",
+    isAlumni: role === "alumni",
+    isFaculty: role === "faculty",
+    isStudent: role === "student",
+    isGuest: role === "guest" || !role,
+
+    logout: forceLogout,
+    refreshRole,
+  };
 
   return (
-    <AuthContext.Provider
-      value={{
-        session,
-        user,
-        role,
-        isVerified,
-        authLoading,
-
-        isAuthenticated: !!session && !!user,
-        isAdmin: role === "admin",
-        isAlumni: role === "alumni",
-        isFaculty: role === "faculty",
-        isStudent: role === "student",
-
-        logout: forceLogout,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+/* ---------------- HOOK ---------------- */
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
+};
