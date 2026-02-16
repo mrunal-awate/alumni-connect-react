@@ -78,7 +78,7 @@
 //     if (!requestMessage.trim() || !isVerified) return;
 
 //     await supabase.from("mentorship_requests").insert({
-//       mentor_id: selectedMentor.user_id,
+//       mentor_id: selectedMentor.us_id,
 //       mentee_id: user.id,
 //       mentee_name: user.email,
 //       message: requestMessage,
@@ -478,7 +478,7 @@ const Mentorship = () => {
 
     try {
       await supabase.from("mentorship").insert({
-        user_id: user.id,
+        id: user.id,
         name: userName || user.email,
         job_title: becomeForm.job_title,
         company: becomeForm.company,
@@ -1229,7 +1229,7 @@ export default Mentorship;
 
 //     try {
 //       await supabase.from("mentorship").insert({
-//         user_id: user.id,
+//         u_id: user.id,
 //         name: userName || user.email,
 //         job_title: becomeForm.job_title,
 //         company: becomeForm.company,

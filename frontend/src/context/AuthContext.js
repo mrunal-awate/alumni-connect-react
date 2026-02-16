@@ -1038,7 +1038,7 @@
 //     /* 👨‍💼 ADMIN */
 //     const { data: admin, error: adminError } = await supabase
 //       .from("admin")
-//       .select("user_id")
+//       .select("")
 //       .eq("id", uid)
 //       .maybeSingle();
 
@@ -1386,3 +1386,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

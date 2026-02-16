@@ -695,7 +695,7 @@
 //       {
 //         title: newPostTitle,
 //         content: newPostContent,
-//         user_id: session.user.id,
+//         : session.user.id,
 //         user_role: userRole,
 //       },
 //     ]);
@@ -710,7 +710,7 @@
 //       {
 //         post_id: selectedPost.id,
 //         content: newReplyContent,
-//         user_id: session.user.id,
+//         id: session.user.id,
 //         user_role: userRole,
 //       },
 //     ]);
@@ -1177,7 +1177,7 @@
 //     if (!text.trim() || !isVerified) return;
 
 //     await supabase.from("discussion_messages").insert({
-//       user_id: user.id,
+//       id: user.id,
 //       name: user.email,
 //       role: userRole,
 //       message: text,
@@ -1209,7 +1209,7 @@
 //           <div
 //             key={msg.id}
 //             className={`max-w-xl ${
-//               msg.user_id === user?.id ? "ml-auto text-right" : ""
+//               msg.id === user?.id ? "ml-auto text-right" : ""
 //             }`}
 //           >
 //             <div className="text-xs text-gray-500 mb-1">
@@ -1306,7 +1306,7 @@ const ConnectForum = () => {
       const uid = session.user.id;
 
       const { data: student } = await supabase
-        .from("students")
+        .from("student")
         .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
@@ -1380,7 +1380,7 @@ const ConnectForum = () => {
     if (!text.trim() || !isVerified) return;
 
     await supabase.from("discussion_messages").insert({
-      user_id: user.id,
+      id: user.id,
       name: userName,
       role: userRole,
       message: text,

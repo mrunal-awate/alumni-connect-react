@@ -1352,7 +1352,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
         const userId = data.user.id;
 
         if (formData.role === "student") {
-          await supabase.from("students").insert({
+          await supabase.from("student").insert({
             id: userId,
             email: formData.email,
             prn: formData.prn,
@@ -1419,8 +1419,8 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
       /* ✅ ADMIN CHECK */
       const { data: admin } = await supabase
         .from("admin") 
-        .select("user_id")
-        .eq("user_id", user.id)
+        .select("id")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (admin) {
@@ -1441,11 +1441,11 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
       let tableName = null;
 
       const { data: student } = await supabase
-        .from("students")
+        .from("student")
         .select("is_verified")
         .eq("id", user.id)
         .maybeSingle();
-      if (student) tableName = "students";
+      if (student) tableName = "student";
 
       const { data: alumni } = await supabase
         .from("alumni")

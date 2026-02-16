@@ -938,7 +938,7 @@ const AlumniSessions = () => {
       setCurrentUser(userId);
 
       const { data: student } = await supabase
-        .from("students")
+        .from("student")
         .select("is_verified, name")
         .eq("id", userId)
         .maybeSingle();
@@ -1036,7 +1036,7 @@ const AlumniSessions = () => {
         .insert([
           {
             session_id: sessionId,
-            user_id: currentUser,
+            id: currentUser,
             message: newMessage.trim(),
             user_name: "Current User", // Replace with actual user name
           },
@@ -1060,7 +1060,7 @@ const AlumniSessions = () => {
         .from("session_reactions")
         .select("*")
         .eq("session_id", sessionId)
-        .eq("user_id", currentUser)
+        .eq("id", currentUser)
         .eq("reaction_type", "like")
         .single();
 
@@ -1082,7 +1082,7 @@ const AlumniSessions = () => {
         await supabase.from("session_reactions").insert([
           {
             session_id: sessionId,
-            user_id: currentUser,
+            id: currentUser,
             reaction_type: "like",
           },
         ]);

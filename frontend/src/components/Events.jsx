@@ -926,7 +926,7 @@
 //     try {
 //       const { error } = await supabase.from("event_participants").insert({
 //         event_id: eventId,
-//         user_id: user.id,
+//        _id: user.id,
 //         user_name: userName,
 //         user_role: userRole,
 //         status: "registered",
@@ -1506,7 +1506,7 @@ const Events = () => {
     try {
       const { error } = await supabase.from("event_participants").insert({
         event_id: eventId,
-        user_id: user.id,
+        id: user.id,
         user_name: userName,
         user_role: userRole,
         status: "registered",

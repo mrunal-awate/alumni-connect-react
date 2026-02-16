@@ -32,7 +32,7 @@ const ResourceExchange = () => {
       const uid = session.user.id;
 
       const { data: student } = await supabase
-        .from("students")
+        .from("student")
         .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
@@ -86,7 +86,7 @@ const ResourceExchange = () => {
       return;
 
     await supabase.from("resource_exchange").insert({
-      user_id: user.id,
+      id: user.id,
       author_name: userName,
       title: newResource.title,
       description: newResource.description,
