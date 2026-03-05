@@ -1183,6 +1183,237 @@
 
 
 
+// import {
+//   createContext,
+//   useContext,
+//   useEffect,
+//   useState,
+//   useCallback,
+// } from "react";
+// import { supabase } from "../supabaseClient";
+
+// const AuthContext = createContext();
+
+// export const AuthProvider = ({ children }) => {
+//   const [session, setSession] = useState(null);
+//   const [user, setUser] = useState(null);
+//   const [role, setRole] = useState(null);
+//   const [isVerified, setIsVerified] = useState(false);
+//   const [authLoading, setAuthLoading] = useState(true);
+
+//  /* ---------------- FORCE LOGOUT ---------------- */
+
+// const forceLogout = useCallback(async () => {
+//   try {
+//     // Supabase automatically clears session + storage
+//     await supabase.auth.signOut();
+//   } catch (err) {
+//     console.error("Logout error:", err);
+//   }
+
+//   // ❌ REMOVE manual localStorage deletion
+//   // localStorage.removeItem("supabase.auth.token");
+
+//   setSession(null);
+//   setUser(null);
+//   setRole(null);
+//   setIsVerified(false);
+// }, []);
+
+
+//   /* ---------------- ROLE RESOLUTION ---------------- */
+
+//   const resolveRole = useCallback(async (uid) => {
+//     try {
+//       console.log("Resolving role for:", uid);
+
+//       // 👨‍💼 ADMIN
+//       const { data: admin, error: adminError } = await supabase
+//         .from("admin")
+//         .select("*")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       if (adminError) {
+//         console.error("Admin query error:", adminError);
+//       }
+
+//       if (admin) {
+//         setRole("admin");
+//         setIsVerified(true);
+//         return;
+//       }
+
+//       // 🧑‍🎓 ALUMNI
+//       const { data: alumni } = await supabase
+//         .from("alumni")
+//         .select("is_verified, name, email")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       if (alumni) {
+//         setRole("alumni");
+//         setIsVerified(alumni.is_verified === true);
+//         return;
+//       }
+
+//       // 🧑‍🏫 FACULTY
+//       const { data: faculty } = await supabase
+//         .from("faculty")
+//         .select("is_verified, name, email")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       if (faculty) {
+//         setRole("faculty");
+//         setIsVerified(faculty.is_verified === true);
+//         return;
+//       }
+
+//       // 🎓 STUDENT
+//       const { data: student } = await supabase
+//         .from("student")
+//         .select("is_verified, name, email")
+//         .eq("id", uid)
+//         .maybeSingle();
+
+//       if (student) {
+//         setRole("student");
+//         setIsVerified(student.is_verified === true);
+//         return;
+//       }
+
+//       // ❌ No role
+//       setRole("guest");
+//       setIsVerified(false);
+
+//     } catch (err) {
+//       console.error("Error resolving role:", err);
+//       setRole("guest");
+//       setIsVerified(false);
+//     }
+//   }, []);
+
+//   /* ---------------- BOOTSTRAP ---------------- */
+
+//   useEffect(() => {
+//     const init = async () => {
+//       try {
+//         const { data, error } = await supabase.auth.getSession();
+
+//         if (error) throw error;
+
+//         const currentSession = data.session;
+
+//         setSession(currentSession);
+//         setUser(currentSession?.user || null);
+
+//         if (currentSession?.user) {
+//           await resolveRole(currentSession.user.id);
+//         }
+
+//       } catch (err) {
+//         console.error("Auth init error:", err);
+//         await forceLogout();
+//       } finally {
+//         setAuthLoading(false);
+//       }
+//     };
+
+//     init();
+
+//     // Auth listener
+//     const {
+//       data: { subscription },
+//     } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+//       setSession(newSession);
+//       setUser(newSession?.user || null);
+
+//       if (newSession?.user) {
+//         await resolveRole(newSession.user.id);
+//       } else {
+//         setRole(null);
+//         setIsVerified(false);
+//       }
+//     });
+
+//     return () => {
+//       subscription.unsubscribe();
+//     };
+//   }, [resolveRole, forceLogout]);
+
+//   /* ---------------- HELPERS ---------------- */
+
+//   const refreshRole = useCallback(async () => {
+//     if (user?.id) {
+//       await resolveRole(user.id);
+//     }
+//   }, [user, resolveRole]);
+
+//   /* ---------------- CONTEXT VALUE ---------------- */
+
+//   const contextValue = {
+//     session,
+//     user,
+//     role,
+//     isVerified,
+//     authLoading,
+
+//     isAuthenticated: !!session && !!user,
+//     isAdmin: role === "admin",
+//     isAlumni: role === "alumni",
+//     isFaculty: role === "faculty",
+//     isStudent: role === "student",
+//     isGuest: role === "guest" || !role,
+
+//     logout: forceLogout,
+//     refreshRole,
+//   };
+
+//   return (
+//     <AuthContext.Provider value={contextValue}>
+//       {children}
+//     </AuthContext.Provider>
+//   );
+// };
+
+// /* ---------------- HOOK ---------------- */
+
+// export const useAuth = () => {
+//   const context = useContext(AuthContext);
+//   if (!context) {
+//     throw new Error("useAuth must be used within AuthProvider");
+//   }
+//   return context;
+// };
+
+
+
+
+
+
+
+// ---------------------------------------------------------------------final version online-------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import {
   createContext,
   useContext,
@@ -1201,42 +1432,30 @@ export const AuthProvider = ({ children }) => {
   const [isVerified, setIsVerified] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
- /* ---------------- FORCE LOGOUT ---------------- */
-
-const forceLogout = useCallback(async () => {
-  try {
-    // Supabase automatically clears session + storage
-    await supabase.auth.signOut();
-  } catch (err) {
-    console.error("Logout error:", err);
-  }
-
-  // ❌ REMOVE manual localStorage deletion
-  // localStorage.removeItem("supabase.auth.token");
-
-  setSession(null);
-  setUser(null);
-  setRole(null);
-  setIsVerified(false);
-}, []);
-
+  /* ---------------- FORCE LOGOUT ---------------- */
+  const forceLogout = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    setSession(null);
+    setUser(null);
+    setRole(null);
+    setIsVerified(false);
+  }, []);
 
   /* ---------------- ROLE RESOLUTION ---------------- */
-
   const resolveRole = useCallback(async (uid) => {
     try {
       console.log("Resolving role for:", uid);
 
       // 👨‍💼 ADMIN
-      const { data: admin, error: adminError } = await supabase
+      const { data: admin } = await supabase
         .from("admin")
         .select("*")
         .eq("id", uid)
         .maybeSingle();
-
-      if (adminError) {
-        console.error("Admin query error:", adminError);
-      }
 
       if (admin) {
         setRole("admin");
@@ -1283,38 +1502,41 @@ const forceLogout = useCallback(async () => {
         return;
       }
 
-      // ❌ No role
+      // ✅ No role found — set guest but DO NOT sign out
+      // This can happen briefly during registration before DB insert completes
+      console.warn("No role found for user:", uid);
       setRole("guest");
       setIsVerified(false);
 
     } catch (err) {
       console.error("Error resolving role:", err);
+      // ✅ Don't sign out on error — just set guest temporarily
       setRole("guest");
       setIsVerified(false);
     }
   }, []);
 
   /* ---------------- BOOTSTRAP ---------------- */
-
   useEffect(() => {
     const init = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
-
         if (error) throw error;
 
         const currentSession = data.session;
-
         setSession(currentSession);
         setUser(currentSession?.user || null);
 
         if (currentSession?.user) {
           await resolveRole(currentSession.user.id);
         }
-
       } catch (err) {
         console.error("Auth init error:", err);
-        await forceLogout();
+        // ✅ Don't force logout on init error — just clear state
+        setSession(null);
+        setUser(null);
+        setRole(null);
+        setIsVerified(false);
       } finally {
         setAuthLoading(false);
       }
@@ -1322,7 +1544,6 @@ const forceLogout = useCallback(async () => {
 
     init();
 
-    // Auth listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
@@ -1337,13 +1558,10 @@ const forceLogout = useCallback(async () => {
       }
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [resolveRole, forceLogout]);
+    return () => subscription.unsubscribe();
+  }, [resolveRole]);
 
   /* ---------------- HELPERS ---------------- */
-
   const refreshRole = useCallback(async () => {
     if (user?.id) {
       await resolveRole(user.id);
@@ -1351,7 +1569,6 @@ const forceLogout = useCallback(async () => {
   }, [user, resolveRole]);
 
   /* ---------------- CONTEXT VALUE ---------------- */
-
   const contextValue = {
     session,
     user,
@@ -1378,7 +1595,6 @@ const forceLogout = useCallback(async () => {
 };
 
 /* ---------------- HOOK ---------------- */
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -1386,4 +1602,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
