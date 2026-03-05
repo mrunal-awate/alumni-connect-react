@@ -17,7 +17,7 @@ router.post('/register', async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     const is_verified = role === 'student'; // auto-verify students, not alumni
 
-    const user = new User({ email, password: hash, role, is_verified: false });    //  Verified: true for Auto verification
+    const user = new User({ email, password: hash, role, is_verified: true });    //  Verified: true for Auto verification
     await user.save();
 
     res.status(201).json({

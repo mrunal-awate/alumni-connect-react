@@ -357,18 +357,18 @@ const AdminDashboard = () => {
       const { data: alumni, error: alumniError } = await supabase
         .from("alumni")
         .select("id, name, email, is_verified, branch, year")
-        .eq("is_verified", false);
+        .eq("is_verified", true);
 
       const { data: faculty, error: facultyError } = await supabase
         .from("faculty")
         .select("id, name, email, is_verified, department")
-        .eq("is_verified", false);
+        .eq("is_verified", true);
 
       // ✅ ADDED: Fetch pending students
       const { data: students, error: studentsError } = await supabase
         .from("student")
         .select("id, name, email, is_verified, branch, prn")
-        .eq("is_verified", false);
+        .eq("is_verified", true);
 
       if (alumniError || facultyError || studentsError) {
         throw new Error("Failed to load users");
