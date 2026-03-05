@@ -336,14 +336,12 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 
 const AdminDashboard = () => {
-  const { isAdmin } = useAuth();
-  // const { isAdmin, authLoading } = useAuth();
+  const { isAdmin, authLoading } = useAuth();
 
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -355,23 +353,43 @@ const AdminDashboard = () => {
     setMessage("");
 
     try {
+      // ✅ FIXED: Use 'name' instead of 'full_name'
       const { data: alumni, error: alumniError } = await supabase
         .from("alumni")
-        .select("id, full_name, email, is_verified")
+        .select("id, name, email, is_verified, branch, year")
         .eq("is_verified", false);
 
       const { data: faculty, error: facultyError } = await supabase
         .from("faculty")
-        .select("id, full_name, email, is_verified")
+        .select("id, name, email, is_verified, department")
         .eq("is_verified", false);
 
-      if (alumniError || facultyError) {
+      // ✅ ADDED: Fetch pending students
+      const { data: students, error: studentsError } = await supabase
+        .from("student")
+        .select("id, name, email, is_verified, branch, prn")
+        .eq("is_verified", false);
+
+      if (alumniError || facultyError || studentsError) {
         throw new Error("Failed to load users");
       }
 
       const combined = [
-        ...(alumni || []).map((u) => ({ ...u, role: "Alumni" })),
-        ...(faculty || []).map((u) => ({ ...u, role: "Faculty" })),
+        ...(alumni || []).map((u) => ({ 
+          ...u, 
+          role: "Alumni",
+          additionalInfo: `${u.branch || ''} - ${u.year || ''}`.trim()
+        })),
+        ...(faculty || []).map((u) => ({ 
+          ...u, 
+          role: "Faculty",
+          additionalInfo: u.department || ''
+        })),
+        ...(students || []).map((u) => ({ 
+          ...u, 
+          role: "Student",
+          additionalInfo: `${u.branch || ''} - PRN: ${u.prn || ''}`.trim()
+        })),
       ];
 
       setPendingUsers(combined);
@@ -392,23 +410,27 @@ const AdminDashboard = () => {
   }, [isAdmin]);
 
   /* ---------------- ACCESS CHECK ---------------- */
-  // if (authLoading) {
-  //   return <p style={styles.status}>Checking admin access...</p>;
-  // }
+  if (authLoading) {
+    return <p style={styles.status}>Checking admin access...</p>;
+  }
 
-  // if (!isAdmin) {
-  //   return (
-  //     <div style={styles.center}>
-  //       <h2>⛔ Access Denied</h2>
-  //       <p>You are not authorized to view this page.</p>
-  //     </div>
-  //   );
-  // }
+  if (!isAdmin) {
+    return (
+      <div style={styles.center}>
+        <h2>⛔ Access Denied</h2>
+        <p>You are not authorized to view this page.</p>
+      </div>
+    );
+  }
 
   /* ---------------- APPROVE USER ---------------- */
   const handleApprove = async (id, role) => {
     try {
-      const table = role === "Alumni" ? "alumni" : "faculty";
+      // ✅ FIXED: Use lowercase for table names and include student
+      let table;
+      if (role === "Alumni") table = "alumni";
+      else if (role === "Faculty") table = "faculty";
+      else if (role === "Student") table = "student";
 
       const { error } = await supabase
         .from(table)
@@ -427,7 +449,35 @@ const AdminDashboard = () => {
     setTimeout(() => setMessage(""), 3000);
   };
 
-  
+  /* ---------------- REJECT USER ---------------- */
+  const handleReject = async (id, role) => {
+    if (!window.confirm(`Are you sure you want to reject this ${role}?`)) {
+      return;
+    }
+
+    try {
+      let table;
+      if (role === "Alumni") table = "alumni";
+      else if (role === "Faculty") table = "faculty";
+      else if (role === "Student") table = "student";
+
+      // Delete the user record (this will cascade delete auth user if configured)
+      const { error } = await supabase
+        .from(table)
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setMessage(`✅ ${role} rejected and removed`);
+      fetchPendingUsers(); // refresh list
+    } catch (err) {
+      console.error(err);
+      setMessage("❌ Rejection failed");
+    }
+
+    setTimeout(() => setMessage(""), 3000);
+  };
 
   /* ---------------- UI ---------------- */
   return (
@@ -442,16 +492,27 @@ const AdminDashboard = () => {
         <div style={styles.grid}>
           {pendingUsers.map((user) => (
             <div key={user.id} style={styles.card}>
-              <h3 style={styles.name}>{user.full_name || "Unnamed User"}</h3>
+              <h3 style={styles.name}>{user.name || "Unnamed User"}</h3>
               <p><strong>Email:</strong> {user.email}</p>
               <p><strong>Role:</strong> {user.role}</p>
+              {user.additionalInfo && (
+                <p><strong>Info:</strong> {user.additionalInfo}</p>
+              )}
 
-              <button
-                style={styles.button}
-                onClick={() => handleApprove(user.id, user.role)}
-              >
-                ✅ Approve
-              </button>
+              <div style={styles.buttonGroup}>
+                <button
+                  style={styles.approveButton}
+                  onClick={() => handleApprove(user.id, user.role)}
+                >
+                  ✅ Approve
+                </button>
+                <button
+                  style={styles.rejectButton}
+                  onClick={() => handleReject(user.id, user.role)}
+                >
+                  ❌ Reject
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -491,7 +552,7 @@ const styles = {
     backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "10px",
-    width: "280px",
+    width: "300px",
     boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
   },
   name: {
@@ -499,14 +560,30 @@ const styles = {
     marginBottom: "10px",
     color: "#004080",
   },
-  button: {
+  buttonGroup: {
+    display: "flex",
+    gap: "10px",
     marginTop: "12px",
+  },
+  approveButton: {
+    flex: 1,
     padding: "8px 16px",
     backgroundColor: "#28a745",
     color: "#fff",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
+    fontWeight: "bold",
+  },
+  rejectButton: {
+    flex: 1,
+    padding: "8px 16px",
+    backgroundColor: "#dc3545",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "bold",
   },
   message: {
     marginTop: "20px",

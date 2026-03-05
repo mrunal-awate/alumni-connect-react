@@ -31,36 +31,51 @@ const ResourceExchange = () => {
 
       const uid = session.user.id;
 
+      // ✅ Check student
       const { data: student } = await supabase
         .from("student")
         .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
 
+      // ✅ Check alumni
       const { data: alumni } = await supabase
         .from("alumni")
         .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
 
+      // ✅ Check faculty
       const { data: faculty } = await supabase
         .from("faculty")
         .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
 
-      if (student?.is_verified) {
-        setUserRole("student");
+      // ✅ ADDED: Check admin
+      const { data: admin } = await supabase
+        .from("admin")
+        .select("*")
+        .eq("id", uid)
+        .maybeSingle();
+
+      // Set role in priority order
+      if (admin) {
+        setUserRole("admin");
         setIsVerified(true);
-        setUserName(student.name || session.user.email);
-      } else if (alumni?.is_verified) {
-        setUserRole("alumni");
-        setIsVerified(true);
-        setUserName(alumni.name || session.user.email);
+        setUserName(admin.name || session.user.email);
       } else if (faculty?.is_verified) {
         setUserRole("faculty");
         setIsVerified(true);
         setUserName(faculty.name || session.user.email);
+      } else if (alumni?.is_verified) {
+        setUserRole("alumni");
+        setIsVerified(true);
+        setUserName(alumni.name || session.user.email);
+      } else if (student?.is_verified) {
+        setUserRole("student");
+        setIsVerified(true);
+        setUserName(student.name || session.user.email);
       }
     };
 
@@ -85,8 +100,10 @@ const ResourceExchange = () => {
     )
       return;
 
+    // ✅ FIXED: Don't use 'id' as primary key for insert
+    // Use 'user_id' or auto-generated UUID
     await supabase.from("resource_exchange").insert({
-      id: user.id,
+      user_id: user.id,  // ✅ Changed from 'id' to 'user_id'
       author_name: userName,
       title: newResource.title,
       description: newResource.description,

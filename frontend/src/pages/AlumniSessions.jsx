@@ -883,8 +883,6 @@
 
 
 
-
-
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet";
@@ -903,8 +901,8 @@ import {
   Bookmark,
   Eye,
   Radio,
-  ChevronRight,
-  Sparkles
+  Sparkles,
+  X
 } from "lucide-react";
 
 const AlumniSessions = () => {
@@ -918,6 +916,7 @@ const AlumniSessions = () => {
   const [filterCategory, setFilterCategory] = useState("All Categories");
   
   const [currentUser, setCurrentUser] = useState(null);
+  const [currentUserName, setCurrentUserName] = useState("");
   const [isVerified, setIsVerified] = useState(false);
   
   // Live session state
@@ -925,7 +924,7 @@ const AlumniSessions = () => {
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
-  /* 🔐 Auth + verification */
+  /* 🔐 Auth + verification - FIXED */
   useEffect(() => {
     const init = async () => {
       const {
@@ -937,26 +936,47 @@ const AlumniSessions = () => {
       const userId = session.user.id;
       setCurrentUser(userId);
 
+      // ✅ Check student (singular)
       const { data: student } = await supabase
         .from("student")
         .select("is_verified, name")
         .eq("id", userId)
         .maybeSingle();
 
+      // ✅ Check alumni
       const { data: alumni } = await supabase
         .from("alumni")
         .select("is_verified, name")
         .eq("id", userId)
         .maybeSingle();
 
+      // ✅ Check faculty
       const { data: faculty } = await supabase
         .from("faculty")
         .select("is_verified, name")
         .eq("id", userId)
         .maybeSingle();
 
-      if (student?.is_verified || alumni?.is_verified || faculty?.is_verified) {
+      // ✅ ADDED: Check admin
+      const { data: admin } = await supabase
+        .from("admin")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+
+      // Set user info in priority order
+      if (admin) {
         setIsVerified(true);
+        setCurrentUserName(admin.name || session.user.email);
+      } else if (faculty?.is_verified) {
+        setIsVerified(true);
+        setCurrentUserName(faculty.name || session.user.email);
+      } else if (alumni?.is_verified) {
+        setIsVerified(true);
+        setCurrentUserName(alumni.name || session.user.email);
+      } else if (student?.is_verified) {
+        setIsVerified(true);
+        setCurrentUserName(student.name || session.user.email);
       }
     };
 
@@ -1026,19 +1046,20 @@ const AlumniSessions = () => {
     }
   };
 
-  /* 📤 Send chat message */
+  /* 📤 Send chat message - FIXED */
   const sendChatMessage = async (sessionId) => {
     if (!newMessage.trim() || !currentUser) return;
 
     try {
+      // ✅ FIXED: Use 'user_id' instead of 'id'
       const { error } = await supabase
         .from("session_chat")
         .insert([
           {
             session_id: sessionId,
-            id: currentUser,
+            user_id: currentUser,  // ✅ Changed from 'id' to 'user_id'
             message: newMessage.trim(),
-            user_name: "Current User", // Replace with actual user name
+            user_name: currentUserName || "User",
           },
         ]);
 
@@ -1050,39 +1071,44 @@ const AlumniSessions = () => {
     }
   };
 
-  /* 👍 Handle reactions */
+  /* 👍 Handle reactions - FIXED */
   const handleReaction = async (sessionId) => {
     if (!currentUser) return;
 
     try {
-      // Check if user already reacted
+      // ✅ FIXED: Use 'user_id' instead of 'id'
       const { data: existing } = await supabase
         .from("session_reactions")
         .select("*")
         .eq("session_id", sessionId)
-        .eq("id", currentUser)
+        .eq("user_id", currentUser)  // ✅ Changed from 'id' to 'user_id'
         .eq("reaction_type", "like")
-        .single();
+        .maybeSingle();
 
       if (existing) {
-        // Remove reaction
+        // Remove reaction - use the reaction's ID, not user_id
         await supabase
           .from("session_reactions")
           .delete()
-          .eq("id", existing.id);
+          .eq("id", existing.id);  // ✅ Use reaction ID for deletion
 
         // Decrement likes
-        await supabase.rpc("decrement", {
-          table_name: "alumni_sessions",
-          row_id: sessionId,
-          column_name: "likes_count",
-        });
+        const { data: session } = await supabase
+          .from("alumni_sessions")
+          .select("likes_count")
+          .eq("id", sessionId)
+          .single();
+
+        await supabase
+          .from("alumni_sessions")
+          .update({ likes_count: Math.max((session?.likes_count || 1) - 1, 0) })
+          .eq("id", sessionId);
       } else {
         // Add reaction
         await supabase.from("session_reactions").insert([
           {
             session_id: sessionId,
-            id: currentUser,
+            user_id: currentUser,  // ✅ Changed from 'id' to 'user_id'
             reaction_type: "like",
           },
         ]);
@@ -1109,9 +1135,17 @@ const AlumniSessions = () => {
   /* 📺 Increment view count */
   const incrementViewCount = async (sessionId) => {
     try {
-      await supabase.rpc("increment_session_views", {
-        session_id: sessionId,
-      });
+      // Get current count and increment
+      const { data: session } = await supabase
+        .from("alumni_sessions")
+        .select("views_count")
+        .eq("id", sessionId)
+        .single();
+
+      await supabase
+        .from("alumni_sessions")
+        .update({ views_count: (session?.views_count || 0) + 1 })
+        .eq("id", sessionId);
     } catch (error) {
       console.error("Error incrementing views:", error);
     }
@@ -1120,9 +1154,9 @@ const AlumniSessions = () => {
   /* 🔍 Filter sessions */
   const filteredSessions = sessions.filter((session) => {
     const matchesSearch =
-      session.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      session.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      session.speaker?.name.toLowerCase().includes(searchQuery.toLowerCase());
+      session.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      session.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      session.speaker?.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesType =
       filterType === "All Sessions" ||
@@ -1450,7 +1484,7 @@ const SessionCard = ({
                   className="w-full h-full rounded-full object-cover"
                 />
               ) : (
-                session.speaker.name.substring(0, 2).toUpperCase()
+                session.speaker.name?.substring(0, 2).toUpperCase()
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -1545,7 +1579,7 @@ const SessionModal = ({
                 onClick={onClose}
                 className="text-gray-400 hover:text-gray-600 transition"
               >
-                <ChevronRight size={24} />
+                <X size={24} />
               </button>
             </div>
 
@@ -1599,7 +1633,7 @@ const SessionModal = ({
                                 className="w-full h-full rounded-full object-cover"
                               />
                             ) : (
-                              session.speaker.name.substring(0, 2).toUpperCase()
+                              session.speaker.name?.substring(0, 2).toUpperCase()
                             )}
                           </div>
                           <div>
@@ -1674,7 +1708,7 @@ const SessionModal = ({
                         {chatMessages.map((msg) => (
                           <div key={msg.id} className="flex gap-2">
                             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                              {msg.user_name.substring(0, 2).toUpperCase()}
+                              {msg.user_name?.substring(0, 2).toUpperCase()}
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2">

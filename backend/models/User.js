@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String }, // optional for CSV users
     role: { type: String, enum: ['student', 'alumni'], required: true },
-    verified: { type: Boolean, default: false },
+    is_verified: { type: Boolean, default: false },
 
     // 🧾 Alumni Profile Fields (PRIMARY)
     fullName: { type: String },

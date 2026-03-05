@@ -26,7 +26,7 @@ const adminAuth = (req, res, next) => {
 // GET all pending alumni (verified: false)
 router.get('/pending-alumni', adminAuth, async (req, res) => {
   try {
-    const pending = await User.find({ role: 'alumni', verified: false }).select(
+    const pending = await User.find({ role: 'alumni', is_verified: false }).select(
       'fullName email yearOfPassing company designation location linkedIn imageUrl'
     );
     res.json(pending);
@@ -40,7 +40,7 @@ router.put('/verify/:id', adminAuth, async (req, res) => {
   try {
     const updated = await User.findByIdAndUpdate(
       req.params.id,
-      { verified: true },
+      { is_verified: true },
       { new: true }
     );
     res.json({ message: 'Alumni verified successfully.', user: updated });

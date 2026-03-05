@@ -247,7 +247,6 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { supabase } from "../supabaseClient";
@@ -286,7 +285,7 @@ const Mentorship = () => {
 
   const navigate = useNavigate();
 
-  /* 🔐 Identify logged-in user */
+  /* 🔐 Identify logged-in user - FULLY CORRECTED */
   useEffect(() => {
     const init = async () => {
       const {
@@ -298,8 +297,9 @@ const Mentorship = () => {
 
       const uid = session.user.id;
 
+      // ✅ FIXED: Changed "students" to "student"
       const { data: student } = await supabase
-        .from("students")
+        .from("student")
         .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
@@ -316,18 +316,30 @@ const Mentorship = () => {
         .eq("id", uid)
         .maybeSingle();
 
-      if (student?.is_verified) {
-        setUserRole("student");
+      // ✅ ADDED: Check for admin role
+      const { data: admin } = await supabase
+        .from("admin")
+        .select("*")
+        .eq("id", uid)
+        .maybeSingle();
+
+      // Check roles in priority order
+      if (admin) {
+        setUserRole("admin");
         setIsVerified(true);
-        setUserName(student.name || session.user.email);
-      } else if (alumni?.is_verified) {
-        setUserRole("alumni");
-        setIsVerified(true);
-        setUserName(alumni.name || session.user.email);
+        setUserName(admin.name || session.user.email);
       } else if (faculty?.is_verified) {
         setUserRole("faculty");
         setIsVerified(true);
         setUserName(faculty.name || session.user.email);
+      } else if (alumni?.is_verified) {
+        setUserRole("alumni");
+        setIsVerified(true);
+        setUserName(alumni.name || session.user.email);
+      } else if (student?.is_verified) {
+        setUserRole("student");
+        setIsVerified(true);
+        setUserName(student.name || session.user.email);
       }
     };
 
@@ -351,8 +363,8 @@ const Mentorship = () => {
           id: "alumni_" + a.id,
           source: "alumni",
           name: a.name || "Unknown",
-          batch_year: a.batch_year || a.graduation_year || null,
-          job_title: a.job_title || a.designation || null,
+          batch_year: a.batch_year || a.graduation_year || a.year || null,
+          job_title: a.job_title || a.designation || a.position || null,
           company: a.company || a.current_company || null,
           experience: a.experience || a.years_of_experience || null,
           expertise: a.expertise || a.area_of_expertise || null,
@@ -478,7 +490,7 @@ const Mentorship = () => {
 
     try {
       await supabase.from("mentorship").insert({
-        id: user.id,
+        user_id: user.id,
         name: userName || user.email,
         job_title: becomeForm.job_title,
         company: becomeForm.company,
@@ -564,8 +576,8 @@ const Mentorship = () => {
               Find a Mentor
             </button>
 
-            {/* Become a Mentor — only alumni / faculty */}
-            {(userRole === "alumni" || userRole === "faculty") && isVerified ? (
+            {/* Become a Mentor — alumni, faculty, and admin */}
+            {(userRole === "alumni" || userRole === "faculty" || userRole === "admin") && isVerified ? (
               <button
                 onClick={() => setShowBecomeModal(true)}
                 className="border-2 border-indigo-600 text-indigo-600 px-7 py-2.5 rounded-full font-semibold hover:bg-indigo-50 transition-all"
@@ -832,7 +844,7 @@ const Mentorship = () => {
         </div>
       )}
 
-      {/* ============ BECOME A MENTOR MODAL (Alumni / Faculty only) ============ */}
+      {/* ============ BECOME A MENTOR MODAL (Alumni / Faculty / Admin) ============ */}
       {showBecomeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">

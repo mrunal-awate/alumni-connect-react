@@ -1276,127 +1276,254 @@
 
 
 
-
-
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { 
+  Briefcase, 
+  MapPin, 
+  Calendar, 
+  DollarSign, 
+  Clock,
+  Building,
+  Search,
+  ExternalLink,
+  X
+} from "lucide-react";
 
-const ConnectForum = () => {
-  const [userRole, setUserRole] = useState("guest");
-  const [isVerified, setIsVerified] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [text, setText] = useState("");
+const Internship = () => {
+  const navigate = useNavigate();
+  
+  // Auth state
   const [user, setUser] = useState(null);
   const [userName, setUserName] = useState("");
-  const bottomRef = useRef(null);
-  const navigate = useNavigate();
+  const [userRole, setUserRole] = useState("guest");
+  const [isVerified, setIsVerified] = useState(false);
+  
+  // Internship state
+  const [internships, setInternships] = useState([]);
+  const [filteredInternships, setFilteredInternships] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("All Types");
+  const [filterLocation, setFilterLocation] = useState("All Locations");
+  const [filterDuration, setFilterDuration] = useState("All Durations");
+  
+  // Modal state
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [selectedInternship, setSelectedInternship] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  
+  // Form state
+  const [postForm, setPostForm] = useState({
+    title: "",
+    company: "",
+    location: "",
+    type: "On-site",
+    duration: "3 months",
+    stipend: "",
+    description: "",
+    requirements: "",
+    apply_url: "",
+    deadline: "",
+  });
 
-  /* 🔐 Identify logged-in user */
+  /* 🔐 Auth + verification - FULLY CORRECTED */
   useEffect(() => {
     const init = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
 
-      if (!session) return;
-      setUser(session.user);
+        if (!session) {
+          setAuthLoading(false);
+          return;
+        }
 
-      const uid = session.user.id;
+        setUser(session.user);
+        const uid = session.user.id;
 
-      const { data: student } = await supabase
-        .from("student")
-        .select("is_verified, name")
-        .eq("id", uid)
-        .maybeSingle();
+        // ✅ Check student (singular)
+        const { data: student } = await supabase
+          .from("student")
+          .select("is_verified, name")
+          .eq("id", uid)
+          .maybeSingle();
 
-      const { data: alumni } = await supabase
-        .from("alumni")
-        .select("is_verified, name")
-        .eq("id", uid)
-        .maybeSingle();
+        // ✅ Check alumni
+        const { data: alumni } = await supabase
+          .from("alumni")
+          .select("is_verified, name")
+          .eq("id", uid)
+          .maybeSingle();
 
-      const { data: faculty } = await supabase
-        .from("faculty")
-        .select("is_verified, name")
-        .eq("id", uid)
-        .maybeSingle();
+        // ✅ Check faculty
+        const { data: faculty } = await supabase
+          .from("faculty")
+          .select("is_verified, name")
+          .eq("id", uid)
+          .maybeSingle();
 
-      if (student?.is_verified) {
-        setUserRole("student");
-        setIsVerified(true);
-        setUserName(student.name || session.user.email);
-      } else if (alumni?.is_verified) {
-        setUserRole("alumni");
-        setIsVerified(true);
-        setUserName(alumni.name || session.user.email);
-      } else if (faculty?.is_verified) {
-        setUserRole("faculty");
-        setIsVerified(true);
-        setUserName(faculty.name || session.user.email);
+        // ✅ Check admin
+        const { data: admin } = await supabase
+          .from("admin")
+          .select("*")
+          .eq("id", uid)
+          .maybeSingle();
+
+        // Set role in priority order
+        if (admin) {
+          setUserRole("admin");
+          setIsVerified(true);
+          setUserName(admin.name || session.user.email);
+        } else if (faculty?.is_verified) {
+          setUserRole("faculty");
+          setIsVerified(true);
+          setUserName(faculty.name || session.user.email);
+        } else if (alumni?.is_verified) {
+          setUserRole("alumni");
+          setIsVerified(true);
+          setUserName(alumni.name || session.user.email);
+        } else if (student?.is_verified) {
+          setUserRole("student");
+          setIsVerified(true);
+          setUserName(student.name || session.user.email);
+        }
+      } catch (error) {
+        console.error("Auth error:", error);
       }
     };
 
     init();
   }, []);
 
-  /* 📥 Load messages */
+  /* 📥 Load internships */
   useEffect(() => {
-    const loadMessages = async () => {
-      const { data } = await supabase
-        .from("discussion_messages")
-        .select("*")
-        .order("created_at", { ascending: true });
-
-      setMessages(data || []);
-    };
-
-    loadMessages();
-
-    /* ⚡ Real-time subscription */
-    const channel = supabase
-      .channel("discussion-chat")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "discussion_messages" },
-        (payload) => {
-          setMessages((prev) => [...prev, payload.new]);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    loadInternships();
   }, []);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const loadInternships = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("jobs_internships")
+        .select("*")
+        .eq("type", "internship")
+        .order("created_at", { ascending: false });
 
-  /* ✉️ Send message */
-  const sendMessage = async () => {
-    if (!text.trim() || !isVerified) return;
-
-    await supabase.from("discussion_messages").insert({
-      id: user.id,
-      name: userName,
-      role: userRole,
-      message: text,
-    });
-
-    setText("");
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+      if (error) throw error;
+      setInternships(data || []);
+      setFilteredInternships(data || []);
+    } catch (error) {
+      console.error("Error loading internships:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Function to get initials from name
+  /* 🔍 Filter internships */
+  useEffect(() => {
+    let filtered = [...internships];
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (job) =>
+          job.title?.toLowerCase().includes(query) ||
+          job.company?.toLowerCase().includes(query) ||
+          job.description?.toLowerCase().includes(query)
+      );
+    }
+
+    // Type filter
+    if (filterType !== "All Types") {
+      filtered = filtered.filter((job) => job.job_type === filterType);
+    }
+
+    // Location filter
+    if (filterLocation !== "All Locations") {
+      filtered = filtered.filter((job) => job.location === filterLocation);
+    }
+
+    // Duration filter
+    if (filterDuration !== "All Durations") {
+      filtered = filtered.filter((job) => job.duration === filterDuration);
+    }
+
+    setFilteredInternships(filtered);
+  }, [searchQuery, filterType, filterLocation, filterDuration, internships]);
+
+  /* ✉️ Post internship - FIXED */
+  const handlePostInternship = async () => {
+    if (!postForm.title.trim() || !postForm.company.trim() || !isVerified) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      // ✅ FIXED: Use 'posted_by' instead of 'id'
+      const { error } = await supabase.from("jobs_internships").insert({
+        type: "internship",
+        title: postForm.title,
+        company: postForm.company,
+        location: postForm.location,
+        job_type: postForm.type,
+        duration: postForm.duration,
+        stipend: postForm.stipend,
+        description: postForm.description,
+        requirements: postForm.requirements,
+        apply_url: postForm.apply_url,
+        deadline: postForm.deadline || null,
+        posted_by: user.id,  // ✅ Changed from 'id' to 'posted_by'
+        poster_name: userName,
+        poster_role: userRole,
+      });
+
+      if (error) throw error;
+
+      alert("✅ Internship posted successfully!");
+      setShowPostModal(false);
+      setPostForm({
+        title: "",
+        company: "",
+        location: "",
+        type: "On-site",
+        duration: "3 months",
+        stipend: "",
+        description: "",
+        requirements: "",
+        apply_url: "",
+        deadline: "",
+      });
+      loadInternships();
+    } catch (error) {
+      console.error("Error posting internship:", error);
+      alert("Failed to post internship. Please try again.");
+    }
+  };
+
+  /* 🎨 Helper functions */
+  const formatDate = (dateString) => {
+    if (!dateString) return "No deadline";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const getTypeColor = (type) => {
+    const colors = {
+      "On-site": "bg-blue-100 text-blue-700",
+      "Remote": "bg-green-100 text-green-700",
+      "Hybrid": "bg-purple-100 text-purple-700",
+    };
+    return colors[type] || "bg-gray-100 text-gray-700";
+  };
+
   const getInitials = (name) => {
     if (!name) return "?";
     const parts = name.split(" ");
@@ -1406,216 +1533,549 @@ const ConnectForum = () => {
     return name.substring(0, 2).toUpperCase();
   };
 
-  // Function to get avatar color based on user role or name
-  const getAvatarColor = (role, name) => {
-    const colors = {
-      student: "bg-purple-500",
-      alumni: "bg-blue-500",
-      faculty: "bg-pink-500",
-    };
-    
-    if (colors[role]) return colors[role];
-    
-    // Generate color based on name
-    const colorOptions = ["bg-indigo-500", "bg-green-500", "bg-yellow-500", "bg-red-500"];
-    const index = name ? name.charCodeAt(0) % colorOptions.length : 0;
-    return colorOptions[index];
-  };
-
-  // Format time
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
+  // Extract unique values for filters
+  const uniqueLocations = [...new Set(internships.map((i) => i.location).filter(Boolean))];
+  const uniqueDurations = [...new Set(internships.map((i) => i.duration).filter(Boolean))];
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
+    <section className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
       <Helmet>
-        <title>Alumni Connect - Discussion Forum</title>
+        <title>Internships | Alumni Connect</title>
       </Helmet>
 
-      {/* Header Section */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Alumni Connect
-            </h1>
-            <p className="text-gray-600">
-              Stay connected, share experiences, and grow together
-            </p>
-          </div>
-
-          {/* Three Feature Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            {/* Mentorship Card */}
-            <div
-              className="bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-indigo-200"
-              onClick={() => navigate("/mentorship")}
-            >
-              <div className="text-center">
-                <div className="text-5xl mb-3">🎓</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Mentorship
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Connect with mentors and guide others
-                </p>
-              </div>
-            </div>
-
-            {/* Success Stories Card */}
-            <div
-              className="bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-indigo-200"
-              onClick={() => navigate("/success-stories")}
-            >
-              <div className="text-center">
-                <div className="text-5xl mb-3">⭐</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Success Stories
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Share and celebrate achievements
-                </p>
-              </div>
-            </div>
-
-            {/* Resource Exchange Card */}
-            <div
-              className="bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-indigo-200"
-              onClick={() => navigate("/resource-exchange")}
-            >
-              <div className="text-center">
-                <div className="text-5xl mb-3">🤝</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Resource Exchange
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Collaborate on projects and share resources
-                </p>
-              </div>
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="mb-4 text-indigo-600 hover:text-indigo-800 flex items-center gap-2 mx-auto"
+          >
+            ← Back
+          </button>
+          <h1 className="text-5xl font-bold text-gray-900 mb-3">
+            🎯 Internship Opportunities
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Find and share internship opportunities
+          </p>
         </div>
-      </div>
 
-      {/* Chat Container */}
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
-        {/* General Chat Section */}
-        <div className="bg-white rounded-3xl shadow-xl flex flex-col h-full overflow-hidden">
-          {/* Chat Header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 rounded-t-3xl">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">💬</span>
-              <div>
-                <h2 className="text-xl font-bold">General Chat</h2>
-                <p className="text-indigo-100 text-sm">
-                  Connect with fellow alumni in real-time
-                </p>
-              </div>
-            </div>
+        {/* Post Internship Button */}
+        {isVerified && (userRole === "alumni" || userRole === "faculty" || userRole === "admin") && (
+          <div className="mb-6 flex justify-end">
+            <button
+              onClick={() => setShowPostModal(true)}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+            >
+              <Briefcase size={20} />
+              Post Internship
+            </button>
           </div>
+        )}
 
-          {/* Verification Warning */}
-          {!isVerified && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 mx-6 mt-4 rounded">
-              <div className="flex items-center">
-                <span className="text-2xl mr-3">🔒</span>
-                <p className="text-red-700 font-medium">
-                  Please verify your account to participate in discussions.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
-            {messages.length === 0 ? (
-              <div className="text-center text-gray-400 py-12">
-                <p className="text-lg">No messages yet. Start the conversation!</p>
-              </div>
-            ) : (
-              messages.map((msg) => (
-                <div key={msg.id} className="flex items-start gap-3">
-                  {/* Avatar */}
-                  <div
-                    className={`${getAvatarColor(
-                      msg.role,
-                      msg.name
-                    )} text-white rounded-full w-10 h-10 flex items-center justify-center font-semibold text-sm flex-shrink-0`}
-                  >
-                    {getInitials(msg.name)}
-                  </div>
-
-                  {/* Message Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span className="font-semibold text-gray-900">
-                        {msg.name}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {formatTime(msg.created_at)}
-                      </span>
-                    </div>
-                    <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm border border-gray-100">
-                      <p className="text-gray-800 break-words">{msg.message}</p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-            <div ref={bottomRef} />
-          </div>
-
-          {/* Input Box */}
-          <div className="bg-white border-t border-gray-200 p-4">
-            <div className="flex items-center gap-3">
+        {/* Search and Filters */}
+        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="relative md:col-span-1">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="text"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={
-                  isVerified
-                    ? "Type your message here... (Authentication required for real-time chat)"
-                    : "Verification required"
-                }
-                disabled={!isVerified}
-                className="flex-1 border border-gray-300 rounded-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="Search internships..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
               />
-              <button
-                onClick={sendMessage}
-                disabled={!isVerified || !text.trim()}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
+            </div>
+
+            {/* Type Filter */}
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            >
+              <option>All Types</option>
+              <option>On-site</option>
+              <option>Remote</option>
+              <option>Hybrid</option>
+            </select>
+
+            {/* Location Filter */}
+            <select
+              value={filterLocation}
+              onChange={(e) => setFilterLocation(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            >
+              <option>All Locations</option>
+              {uniqueLocations.map((loc, i) => (
+                <option key={i} value={loc}>
+                  {loc}
+                </option>
+              ))}
+            </select>
+
+            {/* Duration Filter */}
+            <select
+              value={filterDuration}
+              onChange={(e) => setFilterDuration(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            >
+              <option>All Durations</option>
+              {uniqueDurations.map((dur, i) => (
+                <option key={i} value={dur}>
+                  {dur}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Not Verified Warning */}
+        {!isVerified && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded">
+            <p className="text-yellow-700 font-medium">
+              🔒 Please verify your account to apply for internships.
+            </p>
+          </div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <p className="mt-4 text-gray-600">Loading internships...</p>
+          </div>
+        )}
+
+        {/* No Results */}
+        {!loading && filteredInternships.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl shadow-md">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No internships found
+            </h3>
+            <p className="text-gray-600">
+              Try adjusting your filters or check back later
+            </p>
+          </div>
+        )}
+
+        {/* Internships Grid */}
+        {!loading && filteredInternships.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredInternships.map((internship) => (
+              <div
+                key={internship.id}
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                </svg>
-                Send
+                {/* Card Header */}
+                <div className="p-6 flex-grow">
+                  {/* Type Badge */}
+                  <div className="flex justify-between items-start mb-3">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(
+                        internship.job_type
+                      )}`}
+                    >
+                      {internship.job_type}
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
+                    {internship.title}
+                  </h3>
+
+                  {/* Company */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <Building size={16} className="text-gray-400" />
+                    <span className="text-gray-700 font-medium">
+                      {internship.company}
+                    </span>
+                  </div>
+
+                  {/* Details */}
+                  <div className="space-y-2 mb-4">
+                    {internship.location && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin size={16} />
+                        <span>{internship.location}</span>
+                      </div>
+                    )}
+                    {internship.duration && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Clock size={16} />
+                        <span>{internship.duration}</span>
+                      </div>
+                    )}
+                    {internship.stipend && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <DollarSign size={16} />
+                        <span>{internship.stipend}</span>
+                      </div>
+                    )}
+                    {internship.deadline && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar size={16} />
+                        <span>Deadline: {formatDate(internship.deadline)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description Preview */}
+                  {internship.description && (
+                    <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+                      {internship.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Card Footer */}
+                <div className="px-6 pb-6 mt-auto">
+                  <button
+                    onClick={() => {
+                      setSelectedInternship(internship);
+                      setShowDetailsModal(true);
+                    }}
+                    className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-semibold hover:bg-indigo-700 transition-all"
+                  >
+                    View Details
+                  </button>
+                </div>
+
+                {/* Posted By */}
+                {internship.poster_name && (
+                  <div className="px-6 pb-4 border-t border-gray-100 pt-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xs">
+                        {getInitials(internship.poster_name)}
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Posted by</p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {internship.poster_name}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Post Internship Modal */}
+      {showPostModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center rounded-t-2xl">
+              <h3 className="text-2xl font-bold text-gray-900">
+                Post Internship
+              </h3>
+              <button
+                onClick={() => setShowPostModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
               </button>
             </div>
-            
-            {/* Footer Note */}
-            <div className="text-center mt-3">
-              <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
-                <span>⚡</span>
-                Connect to Supabase to enable real-time chat and authentication
-              </p>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={postForm.title}
+                  onChange={(e) =>
+                    setPostForm({ ...postForm, title: e.target.value })
+                  }
+                  placeholder="e.g., Software Engineering Intern"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Company *
+                </label>
+                <input
+                  type="text"
+                  value={postForm.company}
+                  onChange={(e) =>
+                    setPostForm({ ...postForm, company: e.target.value })
+                  }
+                  placeholder="e.g., Google"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    value={postForm.location}
+                    onChange={(e) =>
+                      setPostForm({ ...postForm, location: e.target.value })
+                    }
+                    placeholder="e.g., Mumbai"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Type
+                  </label>
+                  <select
+                    value={postForm.type}
+                    onChange={(e) =>
+                      setPostForm({ ...postForm, type: e.target.value })
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  >
+                    <option>On-site</option>
+                    <option>Remote</option>
+                    <option>Hybrid</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Duration
+                  </label>
+                  <input
+                    type="text"
+                    value={postForm.duration}
+                    onChange={(e) =>
+                      setPostForm({ ...postForm, duration: e.target.value })
+                    }
+                    placeholder="e.g., 3 months"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Stipend
+                  </label>
+                  <input
+                    type="text"
+                    value={postForm.stipend}
+                    onChange={(e) =>
+                      setPostForm({ ...postForm, stipend: e.target.value })
+                    }
+                    placeholder="e.g., ₹15,000/month"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={postForm.description}
+                  onChange={(e) =>
+                    setPostForm({ ...postForm, description: e.target.value })
+                  }
+                  placeholder="Describe the internship role..."
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 h-24 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Requirements
+                </label>
+                <textarea
+                  value={postForm.requirements}
+                  onChange={(e) =>
+                    setPostForm({ ...postForm, requirements: e.target.value })
+                  }
+                  placeholder="List the requirements..."
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 h-24 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Application URL
+                </label>
+                <input
+                  type="url"
+                  value={postForm.apply_url}
+                  onChange={(e) =>
+                    setPostForm({ ...postForm, apply_url: e.target.value })
+                  }
+                  placeholder="https://company.com/apply"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Application Deadline
+                </label>
+                <input
+                  type="date"
+                  value={postForm.deadline}
+                  onChange={(e) =>
+                    setPostForm({ ...postForm, deadline: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex gap-3 rounded-b-2xl">
+              <button
+                onClick={() => setShowPostModal(false)}
+                className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePostInternship}
+                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2.5 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
+              >
+                Post Internship
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedInternship && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center rounded-t-2xl">
+              <h3 className="text-2xl font-bold text-gray-900">
+                Internship Details
+              </h3>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="mb-4">
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(
+                    selectedInternship.job_type
+                  )}`}
+                >
+                  {selectedInternship.job_type}
+                </span>
+              </div>
+
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                {selectedInternship.title}
+              </h2>
+
+              <div className="flex items-center gap-2 mb-6">
+                <Building size={20} className="text-gray-400" />
+                <span className="text-xl text-gray-700 font-medium">
+                  {selectedInternship.company}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                {selectedInternship.location && (
+                  <div className="flex items-center gap-2">
+                    <MapPin size={18} className="text-gray-400" />
+                    <span className="text-gray-700">
+                      {selectedInternship.location}
+                    </span>
+                  </div>
+                )}
+                {selectedInternship.duration && (
+                  <div className="flex items-center gap-2">
+                    <Clock size={18} className="text-gray-400" />
+                    <span className="text-gray-700">
+                      {selectedInternship.duration}
+                    </span>
+                  </div>
+                )}
+                {selectedInternship.stipend && (
+                  <div className="flex items-center gap-2">
+                    <DollarSign size={18} className="text-gray-400" />
+                    <span className="text-gray-700">
+                      {selectedInternship.stipend}
+                    </span>
+                  </div>
+                )}
+                {selectedInternship.deadline && (
+                  <div className="flex items-center gap-2">
+                    <Calendar size={18} className="text-gray-400" />
+                    <span className="text-gray-700">
+                      Deadline: {formatDate(selectedInternship.deadline)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {selectedInternship.description && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    Description
+                  </h4>
+                  <p className="text-gray-700 whitespace-pre-line">
+                    {selectedInternship.description}
+                  </p>
+                </div>
+              )}
+
+              {selectedInternship.requirements && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    Requirements
+                  </h4>
+                  <p className="text-gray-700 whitespace-pre-line">
+                    {selectedInternship.requirements}
+                  </p>
+                </div>
+              )}
+
+              {selectedInternship.apply_url && (
+                <div className="mt-6">
+                  <a
+                    href={selectedInternship.apply_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"
+                  >
+                    <ExternalLink size={20} />
+                    Apply Now
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
 
-export default ConnectForum;
+export default Internship;

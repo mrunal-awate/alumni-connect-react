@@ -1274,8 +1274,6 @@
 
 
 
-
-
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 
@@ -1358,7 +1356,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
             prn: formData.prn,
             college: formData.college,
             branch: formData.branch,
-            is_verified: false,
+            is_verified: true,
           });
         }
 
@@ -1368,7 +1366,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
             email: formData.email,
             college: formData.college,
             branch: formData.branch,
-            is_verified: false,
+            is_verified: true,
           });
         }
 
@@ -1378,7 +1376,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
             email: formData.email,
             college: formData.college,
             department: formData.department,
-            is_verified: false,
+            is_verified: true,
           });
         }
 
@@ -1419,7 +1417,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
       /* ✅ ADMIN CHECK */
       const { data: admin } = await supabase
         .from("admin") 
-        .select("id")
+        .select("id, name")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -1430,57 +1428,74 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
 
         // ✅ redirect admin
         if (onSuccess) {
-          setTimeout(() => onSuccess("/admin/*"), 500);
-       }
+          setTimeout(() => onSuccess("/admin"), 500);
+        }
 
         return;
-    }
+      }
 
-
-      /* ✅ ROLE TABLE CHECK */
+      /* ✅ ROLE TABLE CHECK - OPTIMIZED */
+      let userRecord = null;
       let tableName = null;
 
+      // Check student
       const { data: student } = await supabase
         .from("student")
         .select("is_verified")
         .eq("id", user.id)
         .maybeSingle();
-      if (student) tableName = "student";
 
-      const { data: alumni } = await supabase
-        .from("alumni")
-        .select("is_verified")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (alumni) tableName = "alumni";
+      if (student) {
+        userRecord = student;
+        tableName = "student";
+      }
 
-      const { data: faculty } = await supabase
-        .from("faculty")
-        .select("is_verified")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (faculty) tableName = "faculty";
-
+      // Check alumni (only if not student)
       if (!tableName) {
+        const { data: alumni } = await supabase
+          .from("alumni")
+          .select("is_verified")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (alumni) {
+          userRecord = alumni;
+          tableName = "alumni";
+        }
+      }
+
+      // Check faculty (only if not student or alumni)
+      if (!tableName) {
+        const { data: faculty } = await supabase
+          .from("faculty")
+          .select("is_verified")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (faculty) {
+          userRecord = faculty;
+          tableName = "faculty";
+        }
+      }
+
+      // If no role found
+      if (!tableName || !userRecord) {
         await supabase.auth.signOut();
         throw new Error("User role not found. Contact admin.");
       }
 
-      const { data: record } = await supabase
-        .from(tableName)
-        .select("is_verified")
-        .eq("id", user.id)
-        .single();
-
-      if (!record.is_verified) {
+      // Check verification status
+      if (!userRecord.is_verified) {
         await supabase.auth.signOut();
         throw new Error("Account pending admin verification.");
       }
 
+      // Success!
       setMessage("Login successful!");
       setIsError(false);
       showTemporaryPopup();
       if (onSuccess) setTimeout(onSuccess, 500);
+
     } catch (error) {
       setIsError(true);
       setMessage(error.message);
@@ -1591,7 +1606,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
           </button>
         </form>
 
-        {/* ✅ LOGIN / REGISTER TOGGLE (ADDED) */}
+        {/* ✅ LOGIN / REGISTER TOGGLE */}
         <p style={styles.toggleText}>
           {isRegister ? "Already have an account?" : "New user?"}{" "}
           <button
@@ -1635,8 +1650,6 @@ const styles = {
   },
   popupSuccess: { background: "#d4edda", padding: 10, marginBottom: 10 },
   popupError: { background: "#f8d7da", padding: 10, marginBottom: 10 },
-
-  /* ✅ ADDED */
   toggleText: {
     marginTop: 15,
     fontSize: 14,

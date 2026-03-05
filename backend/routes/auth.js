@@ -15,13 +15,13 @@ router.post('/register', async (req, res) => {
     if (existing) return res.status(400).json({ message: 'User already exists' });
 
     const hash = await bcrypt.hash(password, 10);
-    const verified = role === 'student'; // auto-verify students, not alumni
+    const is_verified = role === 'student'; // auto-verify students, not alumni
 
-    const user = new User({ email, password: hash, role, verified: false });    //  Verified: true for Auto verification
+    const user = new User({ email, password: hash, role, is_verified: false });    //  Verified: true for Auto verification
     await user.save();
 
     res.status(201).json({
-      message: verified
+      message: is_verified
         ? 'Registration successful. You can now log in.'
         : 'Alumni registration submitted. Awaiting admin approval.'
     });
@@ -41,7 +41,7 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: 'Invalid email or password' });
 
-    if (!user.verified) return res.status(403).json({ message: 'Account not verified yet' });
+    if (!user.is_verified) return res.status(403).json({ message: 'Account not verified yet' });
 
     const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
