@@ -292,7 +292,6 @@
 // -------------------------------------------------------------------------------------------
 // -------------------Upper code is original-------------------
 
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -307,7 +306,7 @@ const News = () => {
       setLoading(true);
       try {
         // ✅ Free RSS feed — no API key required, no rate limit issues
-        const RSS_URL = 'https://feeds.feedburner.com/TechCrunch';
+        const RSS_URL = 'https://techcrunch.com/feed/';
         const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}&count=20`;
 
         const res = await fetch(API_URL);
@@ -482,7 +481,6 @@ const styles = {
 };
 
 export default News;
-
 
 
 
