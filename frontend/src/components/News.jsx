@@ -295,7 +295,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-// ✅ Fallback news — shown if API fails (guaranteed to work for presentation)
 const FALLBACK_NEWS = [
   {
     title: "OpenAI Launches GPT-5 with Enhanced Reasoning Capabilities",
@@ -364,7 +363,6 @@ const News = () => {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        // ✅ HackerNews API — completely free, no key, no rate limit issues
         const res = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json');
         const ids = await res.json();
         const top12 = ids.slice(0, 12);
@@ -397,7 +395,6 @@ const News = () => {
     fetchNews();
   }, []);
 
-  // ✅ Non-logged-in users see only 4 articles
   const visibleArticles = isAuthenticated ? articles : articles.slice(0, 4);
 
   const formatDate = (dateStr) => {
@@ -408,153 +405,199 @@ const News = () => {
   };
 
   return (
-    <section style={styles.section}>
-      <div style={styles.container}>
-        <h2 style={styles.heading}>🚀 Latest Tech News</h2>
-        <p style={styles.subheading}>Stay updated with the latest in technology</p>
+    <>
+      {/* ✅ Injected responsive styles */}
+      <style>{`
+        .news-section {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #e8f4fd, #dbeafe);
+          padding: 40px 20px;
+          box-sizing: border-box;
+        }
+        .news-container {
+          max-width: 960px;
+          margin: 0 auto;
+          width: 100%;
+        }
+        .news-heading {
+          font-size: 2rem;
+          color: #1e40af;
+          text-align: center;
+          margin-bottom: 6px;
+        }
+        .news-subheading {
+          text-align: center;
+          color: #6b7280;
+          margin-bottom: 30px;
+          font-size: 0.9rem;
+        }
+        .news-status {
+          text-align: center;
+          font-size: 1.1rem;
+          color: #777;
+        }
+        .news-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+          gap: 20px;
+        }
+        .news-card {
+          background: #fff;
+          border-radius: 12px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          overflow: hidden;
+        }
+        .news-card-body {
+          padding: 18px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .news-card-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        .news-source {
+          font-size: 0.75rem;
+          background: #dbeafe;
+          color: #1e40af;
+          padding: 2px 8px;
+          border-radius: 20px;
+          font-weight: bold;
+        }
+        .news-date {
+          font-size: 0.75rem;
+          color: #9ca3af;
+        }
+        .news-title {
+          font-size: 1rem;
+          font-weight: bold;
+          color: #1e40af;
+          text-decoration: none;
+          line-height: 1.4;
+        }
+        .news-title:hover {
+          text-decoration: underline;
+        }
+        .news-description {
+          font-size: 0.85rem;
+          color: #6b7280;
+          margin: 0;
+          line-height: 1.5;
+        }
+        .news-read-more {
+          font-size: 0.85rem;
+          color: #2563eb;
+          text-decoration: none;
+          font-weight: 600;
+          margin-top: 4px;
+        }
+        .news-locked-box {
+          margin-top: 30px;
+          background-color: #eff6ff;
+          padding: 16px 24px;
+          border: 1px dashed #1e40af;
+          border-radius: 10px;
+          font-size: 1rem;
+          color: #1e3a8a;
+          text-align: center;
+        }
 
-        {loading ? (
-          <p style={styles.status}>🔄 Loading tech news...</p>
-        ) : (
-          <div style={styles.grid}>
-            {visibleArticles.map((article, idx) => (
-              <div key={idx} style={styles.card}>
-                <div style={styles.cardBody}>
-                  <div style={styles.cardTop}>
-                    <span style={styles.source}>{article.source?.name || 'Tech News'}</span>
-                    <span style={styles.date}>{formatDate(article.publishedAt)}</span>
+        /* ✅ MOBILE STYLES */
+        @media (max-width: 600px) {
+          .news-heading {
+            font-size: 1.4rem;
+          }
+          .news-subheading {
+            font-size: 0.82rem;
+          }
+          .news-grid {
+            grid-template-columns: 1fr;
+            gap: 14px;
+          }
+          .news-card-body {
+            padding: 14px;
+          }
+          .news-title {
+            font-size: 0.95rem;
+          }
+          .news-description {
+            font-size: 0.8rem;
+          }
+          .news-locked-box {
+            font-size: 0.9rem;
+            padding: 12px 16px;
+          }
+        }
+
+        /* ✅ TABLET STYLES */
+        @media (min-width: 601px) and (max-width: 900px) {
+          .news-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+          .news-heading {
+            font-size: 1.7rem;
+          }
+        }
+      `}</style>
+
+      <section className="news-section">
+        <div className="news-container">
+          <h2 className="news-heading">🚀 Latest Tech News</h2>
+          <p className="news-subheading">Stay updated with the latest in technology</p>
+
+          {loading ? (
+            <p className="news-status">🔄 Loading tech news...</p>
+          ) : (
+            <div className="news-grid">
+              {visibleArticles.map((article, idx) => (
+                <div key={idx} className="news-card">
+                  <div className="news-card-body">
+                    <div className="news-card-top">
+                      <span className="news-source">{article.source?.name || 'Tech News'}</span>
+                      <span className="news-date">{formatDate(article.publishedAt)}</span>
+                    </div>
+                    <a
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="news-title"
+                    >
+                      {article.title}
+                    </a>
+                    <p className="news-description">
+                      {article.description?.replace(/<[^>]+>/g, '').slice(0, 120)}
+                    </p>
+                    <a
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="news-read-more"
+                    >
+                      Read more →
+                    </a>
                   </div>
-                  <a
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={styles.title}
-                  >
-                    {article.title}
-                  </a>
-                  <p style={styles.description}>
-                    {article.description?.replace(/<[^>]+>/g, '').slice(0, 120)}
-                  </p>
-                  <a
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={styles.readMore}
-                  >
-                    Read more →
-                  </a>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
 
-        {!isAuthenticated && !loading && (
-          <div style={styles.lockedBox}>
-            🔒 <strong>Login to see all tech news articles.</strong>
-          </div>
-        )}
-      </div>
-    </section>
+          {!isAuthenticated && !loading && (
+            <div className="news-locked-box">
+              🔒 <strong>Login to see all tech news articles.</strong>
+            </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 };
 
-const styles = {
-  section: {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #e8f4fd, #dbeafe)',
-    padding: '40px 20px',
-  },
-  container: {
-    maxWidth: '960px',
-    margin: '0 auto',
-  },
-  heading: {
-    fontSize: '2rem',
-    color: '#1e40af',
-    textAlign: 'center',
-    marginBottom: '6px',
-  },
-  subheading: {
-    textAlign: 'center',
-    color: '#6b7280',
-    marginBottom: '30px',
-    fontSize: '0.9rem',
-  },
-  status: {
-    textAlign: 'center',
-    fontSize: '1.1rem',
-    color: '#777',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))',
-    gap: '20px',
-  },
-  card: {
-    background: '#fff',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-    overflow: 'hidden',
-  },
-  cardBody: {
-    padding: '18px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  cardTop: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  source: {
-    fontSize: '0.75rem',
-    background: '#dbeafe',
-    color: '#1e40af',
-    padding: '2px 8px',
-    borderRadius: '20px',
-    fontWeight: 'bold',
-  },
-  date: {
-    fontSize: '0.75rem',
-    color: '#9ca3af',
-  },
-  title: {
-    fontSize: '1rem',
-    fontWeight: 'bold',
-    color: '#1e40af',
-    textDecoration: 'none',
-    lineHeight: '1.4',
-  },
-  description: {
-    fontSize: '0.85rem',
-    color: '#6b7280',
-    margin: 0,
-    lineHeight: '1.5',
-  },
-  readMore: {
-    fontSize: '0.85rem',
-    color: '#2563eb',
-    textDecoration: 'none',
-    fontWeight: '600',
-    marginTop: '4px',
-  },
-  lockedBox: {
-    marginTop: '30px',
-    backgroundColor: '#eff6ff',
-    padding: '16px 24px',
-    border: '1px dashed #1e40af',
-    borderRadius: '10px',
-    fontSize: '1rem',
-    color: '#1e3a8a',
-    textAlign: 'center',
-  },
-};
-
 export default News;
-
-
 
 
 
