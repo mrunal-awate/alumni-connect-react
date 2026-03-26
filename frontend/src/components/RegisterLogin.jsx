@@ -2059,6 +2059,402 @@
 
 
 
+// import React, { useState } from "react";
+// import { supabase } from "../supabaseClient";
+
+// /* ---------- constants ---------- */
+// const COLLEGES = [
+//   "Sinhgad College of Engineering (SCOE)",
+//   "Smt. Kashibai Navale College of Engineering (SKNCOE)",
+//   "Sinhgad Academy of Engineering (SAE)",
+//   "Sinhgad Institute Of Technology (SIT)",
+//   "Sinhgad Institute of Technology and Science (SITS)",
+//   "RMD Sinhgad School Of Engineering",
+//   "NBN Sinhgad School Of Engineering",
+//   "SKN Sinhgad Institute of Technology & Science (SKNSITS)",
+// ];
+
+// const BRANCHES = ["Computer", "IT", "ENTC", "Mechanical", "Civil"];
+// const DEPARTMENTS = ["Computer", "IT", "ENTC", "Mechanical", "Civil", "Admin"];
+
+// const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
+//   const [formData, setFormData] = useState({
+//     email: "",
+//     password: "",
+//     name: "",         // ✅ ADDED
+//     type: "register",
+//     role: defaultRole,
+//     prn: "",
+//     college: "",
+//     branch: "",
+//     department: "",
+//   });
+
+//   const [message, setMessage] = useState("");
+//   const [isError, setIsError] = useState(false);
+//   const [showPopup, setShowPopup] = useState(false);
+
+//   const handleChange = (e) => {
+//     setFormData((prev) => ({
+//       ...prev,
+//       [e.target.name]: e.target.value,
+//     }));
+//   };
+
+//   const showTemporaryPopup = () => {
+//     setShowPopup(true);
+//     setTimeout(() => setShowPopup(false), 2500);
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setMessage("");
+//     setIsError(false);
+
+//     try {
+//       /* ================= REGISTER ================= */
+//       if (formData.type === "register") {
+//         if (!formData.name.trim()) throw new Error("Please enter your name");  // ✅ ADDED
+//         if (!formData.college) throw new Error("Please select college");
+
+//         if (formData.role === "student" && !formData.prn)
+//           throw new Error("PRN is required for students");
+
+//         if (formData.role !== "faculty" && !formData.branch)
+//           throw new Error("Branch is required");
+
+//         if (formData.role === "faculty" && !formData.department)
+//           throw new Error("Department is required");
+
+//         const { data, error } = await supabase.auth.signUp({
+//           email: formData.email,
+//           password: formData.password,
+//         });
+
+//         if (error) throw error;
+
+//         const userId = data.user.id;
+
+//         if (formData.role === "student") {
+//           const { error: insertError } = await supabase.from("student").insert({
+//             id: userId,
+//             email: formData.email,
+//             name: formData.name,          // ✅ ADDED
+//             roll_number: formData.prn,
+//             college: formData.college,
+//             branch: formData.branch,
+//             is_verified: true,
+//             verification_status: "verified",  // ✅ FIXED enum value
+//           });
+//           if (insertError) throw insertError;
+//         }
+
+//         if (formData.role === "alumni") {
+//           const { error: insertError } = await supabase.from("alumni").insert({
+//             id: userId,
+//             email: formData.email,
+//             name: formData.name,          // ✅ ADDED
+//             college: formData.college,
+//             branch: formData.branch,
+//             is_verified: true,
+//             verification_status: "verified",  // ✅ FIXED enum value
+//           });
+//           if (insertError) throw insertError;
+//         }
+
+//         if (formData.role === "faculty") {
+//           const { error: insertError } = await supabase.from("faculty").insert({
+//             id: userId,
+//             email: formData.email,
+//             name: formData.name,          // ✅ ADDED
+//             college: formData.college,
+//             department: formData.department,
+//             branch: formData.branch || null,  // ✅ faculty branch is optional
+//             is_verified: true,
+//             verification_status: "verified",  // ✅ FIXED enum value
+//           });
+//           if (insertError) throw insertError;
+//         }
+
+//         setMessage("Registration successful! You can now login.");
+//         setIsError(false);
+//         showTemporaryPopup();
+
+//         // Switch to login form
+//         setFormData({
+//           email: formData.email,
+//           password: "",
+//           name: "",
+//           type: "login",
+//           role: formData.role,
+//           prn: "",
+//           college: "",
+//           branch: "",
+//           department: "",
+//         });
+
+//         return;
+//       }
+
+//       /* ================= LOGIN ================= */
+
+//       const { data: loginData, error } = await supabase.auth.signInWithPassword({
+//         email: formData.email,
+//         password: formData.password,
+//       });
+
+//       if (error) throw error;
+
+//       const user = loginData.user;
+
+//       /* ✅ ADMIN CHECK */
+//       const { data: admin } = await supabase
+//         .from("admin")
+//         .select("id, name")
+//         .eq("id", user.id)
+//         .maybeSingle();
+
+//       if (admin) {
+//         setMessage("Admin login successful!");
+//         setIsError(false);
+//         showTemporaryPopup();
+//         if (onSuccess) setTimeout(() => onSuccess("/admin"), 500);
+//         return;
+//       }
+
+//       /* ✅ ROLE TABLE CHECK */
+//       let tableName = null;
+
+//       const { data: student } = await supabase
+//         .from("student")
+//         .select("is_verified")
+//         .eq("id", user.id)
+//         .maybeSingle();
+
+//       if (student) tableName = "student";
+
+//       if (!tableName) {
+//         const { data: alumni } = await supabase
+//           .from("alumni")
+//           .select("is_verified")
+//           .eq("id", user.id)
+//           .maybeSingle();
+//         if (alumni) tableName = "alumni";
+//       }
+
+//       if (!tableName) {
+//         const { data: faculty } = await supabase
+//           .from("faculty")
+//           .select("is_verified")
+//           .eq("id", user.id)
+//           .maybeSingle();
+//         if (faculty) tableName = "faculty";
+//       }
+
+//       if (!tableName) {
+//         await supabase.auth.signOut();
+//         throw new Error("User record not found. Please register first.");
+//       }
+
+//       setMessage("Login successful!");
+//       setIsError(false);
+//       showTemporaryPopup();
+//       if (onSuccess) setTimeout(onSuccess, 500);
+
+//     } catch (error) {
+//       setIsError(true);
+//       setMessage(error.message);
+//       showTemporaryPopup();
+//     }
+//   };
+
+//   const isRegister = formData.type === "register";
+
+//   return (
+//     <section style={styles.section}>
+//       <div style={styles.card}>
+//         <h2 style={styles.heading}>{isRegister ? "Register" : "Login"}</h2>
+
+//         {showPopup && (
+//           <div style={isError ? styles.popupError : styles.popupSuccess}>
+//             {message}
+//           </div>
+//         )}
+
+//         <form onSubmit={handleSubmit} style={styles.form}>
+//           <input
+//             name="email"
+//             placeholder="Email"
+//             value={formData.email}
+//             onChange={handleChange}
+//             required
+//             style={styles.input}
+//           />
+
+//           <input
+//             type="password"
+//             name="password"
+//             placeholder="Password"
+//             value={formData.password}
+//             onChange={handleChange}
+//             required
+//             style={styles.input}
+//           />
+
+//           {isRegister && (
+//             <>
+//               {/* ✅ NAME FIELD ADDED */}
+//               <input
+//                 name="name"
+//                 placeholder="Full Name"
+//                 value={formData.name}
+//                 onChange={handleChange}
+//                 required
+//                 style={styles.input}
+//               />
+
+//               <select
+//                 name="role"
+//                 value={formData.role}
+//                 onChange={handleChange}
+//                 style={styles.input}
+//               >
+//                 <option value="student">Student</option>
+//                 <option value="alumni">Alumni</option>
+//                 <option value="faculty">Faculty</option>
+//               </select>
+
+//               <select
+//                 name="college"
+//                 value={formData.college}
+//                 onChange={handleChange}
+//                 style={styles.input}
+//               >
+//                 <option value="">Select College</option>
+//                 {COLLEGES.map((c) => (
+//                   <option key={c}>{c}</option>
+//                 ))}
+//               </select>
+
+//               {formData.role === "student" && (
+//                 <input
+//                   name="prn"
+//                   placeholder="PRN"
+//                   value={formData.prn}
+//                   onChange={handleChange}
+//                   style={styles.input}
+//                 />
+//               )}
+
+//               {formData.role !== "faculty" && (
+//                 <select
+//                   name="branch"
+//                   value={formData.branch}
+//                   onChange={handleChange}
+//                   style={styles.input}
+//                 >
+//                   <option value="">Select Branch</option>
+//                   {BRANCHES.map((b) => (
+//                     <option key={b}>{b}</option>
+//                   ))}
+//                 </select>
+//               )}
+
+//               {formData.role === "faculty" && (
+//                 <select
+//                   name="department"
+//                   value={formData.department}
+//                   onChange={handleChange}
+//                   style={styles.input}
+//                 >
+//                   <option value="">Select Department</option>
+//                   {DEPARTMENTS.map((d) => (
+//                     <option key={d}>{d}</option>
+//                   ))}
+//                 </select>
+//               )}
+//             </>
+//           )}
+
+//           <button type="submit" style={styles.button}>
+//             {isRegister ? "Register" : "Login"}
+//           </button>
+//         </form>
+
+//         <p style={styles.toggleText}>
+//           {isRegister ? "Already have an account?" : "New user?"}{" "}
+//           <button
+//             type="button"
+//             onClick={() =>
+//               setFormData((prev) => ({
+//                 ...prev,
+//                 type: prev.type === "register" ? "login" : "register",
+//               }))
+//             }
+//             style={styles.toggleBtn}
+//           >
+//             {isRegister ? "Login here" : "Register here"}
+//           </button>
+//         </p>
+//       </div>
+//     </section>
+//   );
+// };
+
+// /* ---------- STYLES ---------- */
+// const styles = {
+//   section: { padding: 0 },
+//   card: {
+//     background: "#fff",
+//     padding: 30,
+//     borderRadius: 12,
+//     maxWidth: 450,
+//     margin: "auto",
+//   },
+//   heading: { color: "#004080", marginBottom: 20 },
+//   form: { display: "flex", flexDirection: "column", gap: 10 },
+//   input: { padding: 12, borderRadius: 6, border: "1px solid #ccc" },
+//   button: {
+//     padding: 12,
+//     background: "#004080",
+//     color: "#fff",
+//     border: "none",
+//     borderRadius: 6,
+//     cursor: "pointer",
+//   },
+//   popupSuccess: { background: "#d4edda", padding: 10, marginBottom: 10 },
+//   popupError: { background: "#f8d7da", padding: 10, marginBottom: 10 },
+//   toggleText: { marginTop: 15, fontSize: 14, textAlign: "center" },
+//   toggleBtn: {
+//     background: "none",
+//     border: "none",
+//     color: "#004080",
+//     cursor: "pointer",
+//     fontWeight: "bold",
+//     textDecoration: "underline",
+//   },
+// };
+
+// export default RegisterLogin;
+
+
+
+
+
+
+
+
+
+
+// -------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 
@@ -2126,6 +2522,7 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
         if (formData.role === "faculty" && !formData.department)
           throw new Error("Department is required");
 
+        // ✅ STEP 1: Sign up but immediately sign out to prevent race condition
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -2135,16 +2532,21 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
 
         const userId = data.user.id;
 
+        // ✅ STEP 2: Sign out immediately so onAuthStateChange doesn't fire
+        // before the profile row is inserted
+        await supabase.auth.signOut();
+
+        // ✅ STEP 3: Insert profile row using service/anon (RLS allows anon insert)
         if (formData.role === "student") {
           const { error: insertError } = await supabase.from("student").insert({
             id: userId,
             email: formData.email,
-            name: formData.name,          // ✅ ADDED
+            name: formData.name,
             roll_number: formData.prn,
             college: formData.college,
-            branch: formData.branch,
+            branch: formData.branch || null,
             is_verified: true,
-            verification_status: "verified",  // ✅ FIXED enum value
+            verification_status: "verified",
           });
           if (insertError) throw insertError;
         }
@@ -2153,11 +2555,11 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
           const { error: insertError } = await supabase.from("alumni").insert({
             id: userId,
             email: formData.email,
-            name: formData.name,          // ✅ ADDED
+            name: formData.name,
             college: formData.college,
-            branch: formData.branch,
+            branch: formData.branch || null,
             is_verified: true,
-            verification_status: "verified",  // ✅ FIXED enum value
+            verification_status: "verified",
           });
           if (insertError) throw insertError;
         }
@@ -2166,32 +2568,28 @@ const RegisterLogin = ({ onSuccess, defaultRole = "student" }) => {
           const { error: insertError } = await supabase.from("faculty").insert({
             id: userId,
             email: formData.email,
-            name: formData.name,          // ✅ ADDED
+            name: formData.name,
             college: formData.college,
             department: formData.department,
-            branch: formData.branch || null,  // ✅ faculty branch is optional
+            branch: null,
             is_verified: true,
-            verification_status: "verified",  // ✅ FIXED enum value
+            verification_status: "verified",
           });
           if (insertError) throw insertError;
         }
 
-        setMessage("Registration successful! You can now login.");
+        // ✅ STEP 4: Now sign in — profile row exists, resolveRole will work
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) throw signInError;
+
+        setMessage("Registration successful! Logging you in...");
         setIsError(false);
         showTemporaryPopup();
-
-        // Switch to login form
-        setFormData({
-          email: formData.email,
-          password: "",
-          name: "",
-          type: "login",
-          role: formData.role,
-          prn: "",
-          college: "",
-          branch: "",
-          department: "",
-        });
+        if (onSuccess) setTimeout(onSuccess, 800);
 
         return;
       }
