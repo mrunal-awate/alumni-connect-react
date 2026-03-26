@@ -29,7 +29,7 @@ const SuccessStories = () => {
       const uid = session.user.id;
 
       const { data: student } = await supabase
-        .from("students")
+        .from("student")
         .select("is_verified, name")
         .eq("id", uid)
         .maybeSingle();
@@ -83,7 +83,7 @@ const SuccessStories = () => {
       return;
 
     await supabase.from("success_stories").insert({
-      user_id: user.id,
+      id: user.id,
       author_name: userName,
       title: newStory.title,
       description: newStory.description,

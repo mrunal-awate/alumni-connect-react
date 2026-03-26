@@ -926,7 +926,7 @@
 //     try {
 //       const { error } = await supabase.from("event_participants").insert({
 //         event_id: eventId,
-//         user_id: user.id,
+//        _id: user.id,
 //         user_name: userName,
 //         user_role: userRole,
 //         status: "registered",
@@ -1354,8 +1354,6 @@
 
 
 
-
-
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet";
@@ -1386,7 +1384,7 @@ const Events = () => {
     max_participants: "",
   });
 
-  // 🔐 Supabase verification
+  // 🔐 Supabase verification - FULLY CORRECTED
   useEffect(() => {
     const init = async () => {
       const {
@@ -1397,15 +1395,17 @@ const Events = () => {
         setUser(session.user);
         const uid = session.user.id;
 
+        // ✅ FIXED: Changed "students" to "student" (singular)
         const { data: student } = await supabase
-          .from("students")
+          .from("student")
           .select("is_verified, name")
           .eq("id", uid)
           .maybeSingle();
 
+        // ✅ FIXED: Changed "verified" to "is_verified"
         const { data: alumni } = await supabase
           .from("alumni")
-          .select("verified, name")
+          .select("is_verified, name")
           .eq("id", uid)
           .maybeSingle();
 
@@ -1415,18 +1415,30 @@ const Events = () => {
           .eq("id", uid)
           .maybeSingle();
 
-        if (student?.is_verified === true || student?.is_verified === "true") {
-          setUserRole("student");
+        // ✅ FIXED: Check admin too
+        const { data: admin } = await supabase
+          .from("admin")
+          .select("*")
+          .eq("id", uid)
+          .maybeSingle();
+
+        // Check roles in priority order: admin → faculty → alumni → student
+        if (admin) {
+          setUserRole("admin");
           setIsVerified(true);
-          setUserName(student.name || session.user.email);
-        } else if (alumni?.verified === true || alumni?.verified === "true" || String(alumni?.verified).trim().toLowerCase() === "true") {
-          setUserRole("alumni");
-          setIsVerified(true);
-          setUserName(alumni.name || session.user.email);
-        } else if (faculty?.is_verified === true || faculty?.is_verified === "true") {
+          setUserName(admin.name || session.user.email);
+        } else if (faculty?.is_verified === true) {
           setUserRole("faculty");
           setIsVerified(true);
           setUserName(faculty.name || session.user.email);
+        } else if (alumni?.is_verified === true) {  // ✅ FIXED: Use is_verified not verified
+          setUserRole("alumni");
+          setIsVerified(true);
+          setUserName(alumni.name || session.user.email);
+        } else if (student?.is_verified === true) {
+          setUserRole("student");
+          setIsVerified(true);
+          setUserName(student.name || session.user.email);
         }
       }
 
@@ -1611,8 +1623,8 @@ const Events = () => {
             <p className="text-slate-500">Connect, learn, and grow together</p>
           </div>
 
-          {/* Post Event Button - Only for alumni, faculty, admin */}
-          {(userRole === "alumni" || userRole === "faculty") && (
+          {/* Post Event Button - For alumni, faculty, and admin */}
+          {(userRole === "alumni" || userRole === "faculty" || userRole === "admin") && (
             <button
               onClick={() => setShowCreateModal(true)}
               className="flex items-center gap-2 bg-slate-800 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-slate-700 transition-all shadow-sm"

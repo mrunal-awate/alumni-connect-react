@@ -1500,7 +1500,7 @@ const Internships = () => {
       setCurrentUser(userId);
 
       const { data: student } = await supabase
-        .from("students")
+        .from("student")
         .select("is_verified, name")
         .eq("id", userId)
         .maybeSingle();

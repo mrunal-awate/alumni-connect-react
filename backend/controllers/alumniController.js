@@ -201,7 +201,7 @@ exports.getAllAlumni = async (req, res) => {
       imageUrl: a.imageUrl || '',
       phone: a.phone || '',
 
-      verified: a.verified ?? false,
+      is_verified: a.is_verified ?? false,
     }));
 
     res.json(formattedAlumni);
@@ -233,7 +233,7 @@ exports.getAlumniById = async (req, res) => {
       linkedIn: a.linkedIn || '',
       role: a.role || 'alumni',
       imageUrl: a.imageUrl || '',
-      verified: a.verified ?? false,
+      is_verified: a.is_verified ?? false,
     });
   } catch (err) {
     console.error(err);
@@ -246,7 +246,7 @@ exports.getPendingAlumni = async (req, res) => {
   try {
     const pending = await User.find({
       role: 'alumni',
-      verified: false,
+      is_verified: false,
     });
 
     const formattedPending = pending.map(a => ({
@@ -273,7 +273,7 @@ exports.verifyAlumniById = async (req, res) => {
       return res.status(404).json({ message: 'Alumni not found' });
     }
 
-    alumni.verified = true;
+    alumni.is_verified = true;
     await alumni.save();
 
     res.json({ message: 'Alumni account verified successfully' });
