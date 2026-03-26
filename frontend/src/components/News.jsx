@@ -134,89 +134,259 @@
 
 //  ---------------1st version online -----------------
 
+// import React, { useEffect, useState } from 'react';
+// import axios from 'axios';
+// import { useAuth } from '../context/AuthContext';
+
+// const News = () => {
+//   const { isAuthenticated } = useAuth();
+//   const [jobs, setJobs] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState('');
+
+//   useEffect(() => {
+//     const fetchJobs = async () => {
+//       setLoading(true);
+//       try {
+//         const options = {
+//           method: 'GET',
+//           url: 'https://jsearch.p.rapidapi.com/search',
+//           // url: 'https://gnews.io/api/v4/top-headlines?category=' + category + '&lang=en&country=us&max=10&apikey=' + apikey;',     //Testing purpose
+//           params: {
+//             query: 'internship OR fresher jobs',
+//             page: '1',
+//             num_pages: '1',
+//           },
+//           headers: {
+//             // 'X-RapidAPI-Key': 'ec18f5d303msh80d3aa10778cbb0p18a129jsn642fec00ac67', // 🚫 Replace with env var in production
+//             // 'X-RapidAPI-Key': '1DL4pRCKKmg238fsCU6i7ZYEStP9fL9o4q', // Testing Purpose
+//             'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
+//             // 'X-RapidAPI-Host': 'gnews.io',                   //Testing Purpose
+//           },
+//         };
+
+//         const res = await axios.request(options);
+//         setJobs(res.data.data || []);
+//       } catch (err) {
+//         console.error('Failed to fetch job news:', err);
+//         if (err.response?.status === 429) {
+//           setError('⚠️ API limit exceeded. Please try again later.');
+//         } else {
+//           setError('❌ Failed to fetch job news.');
+//         }
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchJobs();
+//   }, []);
+
+//   const visibleJobs = isAuthenticated ? jobs : jobs.slice(0, 3);
+
+//   return (
+//     <section style={styles.section}>
+//       <div style={styles.container}>
+//         <h2 style={styles.heading}>💼 Latest Job & Internship Listings</h2>
+
+//         {loading ? (
+//           <p style={styles.status}>🔄 Loading job news...</p>
+//         ) : error ? (
+//           <p style={styles.error}>{error}</p>
+//         ) : (
+//           <ul style={styles.list}>
+//             {visibleJobs.length > 0 ? (
+//               visibleJobs.map((job, idx) => (
+//                 <li key={idx} style={styles.listItem}>
+//                   <a
+//                     href={job.job_google_link}
+//                     target="_blank"
+//                     rel="noopener noreferrer"
+//                     style={styles.link}
+//                   >
+//                     🔗 {job.job_title} at {job.employer_name}
+//                   </a>
+//                 </li>
+//               ))
+//             ) : (
+//               <li style={styles.listItem}>🚫 No job listings found.</li>
+//             )}
+//           </ul>
+//         )}
+
+//         {!isAuthenticated && !loading && !error && (
+//           <div style={styles.lockedBox}>
+//             🔒 <strong>Login to see more job opportunities.</strong>
+//           </div>
+//         )}
+//       </div>
+//     </section>
+//   );
+// };
+
+// const styles = {
+//   section: {
+//     minHeight: '100vh',
+//     background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)',
+//     display: 'flex',
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     padding: '40px 20px',
+//   },
+//   container: {
+//     textAlign: 'center',
+//     maxWidth: '700px',
+//   },
+//   heading: {
+//     fontSize: '2rem',
+//     color: '#ad1457',
+//     marginBottom: '25px',
+//   },
+//   status: {
+//     fontSize: '1.1rem',
+//     color: '#777',
+//     marginBottom: '20px',
+//   },
+//   error: {
+//     fontSize: '1.1rem',
+//     color: 'red',
+//     marginBottom: '20px',
+//     fontWeight: 'bold',
+//   },
+//   list: {
+//     listStyle: 'none',
+//     padding: 0,
+//   },
+//   listItem: {
+//     fontSize: '1.1rem',
+//     color: '#333',
+//     marginBottom: '15px',
+//     lineHeight: '1.6',
+//     background: '#ffffffdd',
+//     padding: '12px 20px',
+//     borderRadius: '10px',
+//     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+//   },
+//   link: {
+//     textDecoration: 'none',
+//     color: '#0077cc',
+//     fontWeight: 'bold',
+//   },
+//   lockedBox: {
+//     marginTop: '25px',
+//     backgroundColor: '#fff0f5',
+//     padding: '16px 24px',
+//     border: '1px dashed #ad1457',
+//     borderRadius: '10px',
+//     fontSize: '1rem',
+//     color: '#880e4f',
+//   },
+// };
+
+// export default News;
+
+
+
+
+
+// -------------------------------------------------------------------------------------------
+// -------------------Upper code is original-------------------
+
+
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
 const News = () => {
   const { isAuthenticated } = useAuth();
-  const [jobs, setJobs] = useState([]);
+  const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchNews = async () => {
       setLoading(true);
       try {
-        const options = {
-          method: 'GET',
-          url: 'https://jsearch.p.rapidapi.com/search',
-          // url: 'https://gnews.io/api/v4/top-headlines?category=' + category + '&lang=en&country=us&max=10&apikey=' + apikey;',     //Testing purpose
-          params: {
-            query: 'internship OR fresher jobs',
-            page: '1',
-            num_pages: '1',
-          },
-          headers: {
-            // 'X-RapidAPI-Key': 'ec18f5d303msh80d3aa10778cbb0p18a129jsn642fec00ac67', // 🚫 Replace with env var in production
-            // 'X-RapidAPI-Key': '1DL4pRCKKmg238fsCU6i7ZYEStP9fL9o4q', // Testing Purpose
-            'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
-            // 'X-RapidAPI-Host': 'gnews.io',                   //Testing Purpose
-          },
-        };
+        // ✅ Free RSS feed — no API key required, no rate limit issues
+        const RSS_URL = 'https://feeds.feedburner.com/TechCrunch';
+        const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}&count=20`;
 
-        const res = await axios.request(options);
-        setJobs(res.data.data || []);
+        const res = await fetch(API_URL);
+        const data = await res.json();
+
+        if (data.status !== 'ok') throw new Error('Failed to load news');
+
+        setArticles(data.items || []);
       } catch (err) {
-        console.error('Failed to fetch job news:', err);
-        if (err.response?.status === 429) {
-          setError('⚠️ API limit exceeded. Please try again later.');
-        } else {
-          setError('❌ Failed to fetch job news.');
-        }
+        console.error('Failed to fetch news:', err);
+        setError('❌ Failed to fetch tech news. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchJobs();
+    fetchNews();
   }, []);
 
-  const visibleJobs = isAuthenticated ? jobs : jobs.slice(0, 3);
+  // ✅ Show only 4 articles to non-logged-in users
+  const visibleArticles = isAuthenticated ? articles : articles.slice(0, 4);
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });
+  };
 
   return (
     <section style={styles.section}>
       <div style={styles.container}>
-        <h2 style={styles.heading}>💼 Latest Job & Internship Listings</h2>
+        <h2 style={styles.heading}>🚀 Latest Tech News</h2>
+        <p style={styles.subheading}>Powered by TechCrunch</p>
 
         {loading ? (
-          <p style={styles.status}>🔄 Loading job news...</p>
+          <p style={styles.status}>🔄 Loading tech news...</p>
         ) : error ? (
           <p style={styles.error}>{error}</p>
         ) : (
-          <ul style={styles.list}>
-            {visibleJobs.length > 0 ? (
-              visibleJobs.map((job, idx) => (
-                <li key={idx} style={styles.listItem}>
-                  <a
-                    href={job.job_google_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={styles.link}
-                  >
-                    🔗 {job.job_title} at {job.employer_name}
-                  </a>
-                </li>
+          <div style={styles.grid}>
+            {visibleArticles.length > 0 ? (
+              visibleArticles.map((article, idx) => (
+                <div key={idx} style={styles.card}>
+                  {article.thumbnail && (
+                    <img
+                      src={article.thumbnail}
+                      alt="thumbnail"
+                      style={styles.thumbnail}
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                  )}
+                  <div style={styles.cardBody}>
+                    <p style={styles.date}>📅 {formatDate(article.pubDate)}</p>
+                    <a
+                      href={article.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.title}
+                    >
+                      {article.title}
+                    </a>
+                    <p style={styles.description}>
+                      {article.description
+                        ? article.description.replace(/<[^>]+>/g, '').slice(0, 120) + '...'
+                        : ''}
+                    </p>
+                  </div>
+                </div>
               ))
             ) : (
-              <li style={styles.listItem}>🚫 No job listings found.</li>
+              <p style={styles.status}>No articles found.</p>
             )}
-          </ul>
+          </div>
         )}
 
         {!isAuthenticated && !loading && !error && (
           <div style={styles.lockedBox}>
-            🔒 <strong>Login to see more job opportunities.</strong>
+            🔒 <strong>Login to see all tech news articles.</strong>
           </div>
         )}
       </div>
@@ -227,63 +397,118 @@ const News = () => {
 const styles = {
   section: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #fce4ec, #f8bbd0)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    background: 'linear-gradient(135deg, #e8f4fd, #dbeafe)',
     padding: '40px 20px',
   },
   container: {
-    textAlign: 'center',
-    maxWidth: '700px',
+    maxWidth: '900px',
+    margin: '0 auto',
   },
   heading: {
     fontSize: '2rem',
-    color: '#ad1457',
-    marginBottom: '25px',
+    color: '#1e40af',
+    textAlign: 'center',
+    marginBottom: '6px',
+  },
+  subheading: {
+    textAlign: 'center',
+    color: '#6b7280',
+    marginBottom: '30px',
+    fontSize: '0.9rem',
   },
   status: {
+    textAlign: 'center',
     fontSize: '1.1rem',
     color: '#777',
-    marginBottom: '20px',
   },
   error: {
+    textAlign: 'center',
     fontSize: '1.1rem',
     color: 'red',
-    marginBottom: '20px',
     fontWeight: 'bold',
   },
-  list: {
-    listStyle: 'none',
-    padding: 0,
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+    gap: '20px',
   },
-  listItem: {
-    fontSize: '1.1rem',
-    color: '#333',
-    marginBottom: '15px',
-    lineHeight: '1.6',
-    background: '#ffffffdd',
-    padding: '12px 20px',
-    borderRadius: '10px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+  card: {
+    background: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
   },
-  link: {
+  thumbnail: {
+    width: '100%',
+    height: '180px',
+    objectFit: 'cover',
+  },
+  cardBody: {
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  date: {
+    fontSize: '0.78rem',
+    color: '#9ca3af',
+    margin: 0,
+  },
+  title: {
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    color: '#1e40af',
     textDecoration: 'none',
-    color: '#0077cc',
-    fontWeight: 'bold',
+    lineHeight: '1.4',
+  },
+  description: {
+    fontSize: '0.85rem',
+    color: '#6b7280',
+    margin: 0,
+    lineHeight: '1.5',
   },
   lockedBox: {
-    marginTop: '25px',
-    backgroundColor: '#fff0f5',
+    marginTop: '30px',
+    backgroundColor: '#eff6ff',
     padding: '16px 24px',
-    border: '1px dashed #ad1457',
+    border: '1px dashed #1e40af',
     borderRadius: '10px',
     fontSize: '1rem',
-    color: '#880e4f',
+    color: '#1e3a8a',
+    textAlign: 'center',
   },
 };
 
 export default News;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
